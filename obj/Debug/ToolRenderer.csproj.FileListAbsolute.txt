@@ -1,0 +1,14 @@
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Debug\Mods\mod\assets\toolrenderer\lang\en.json
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Debug\Mods\mod\modinfo.json
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Debug\Mods\mod\ToolRenderer.deps.json
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Debug\Mods\mod\ToolRenderer.dll
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Debug\Mods\mod\ToolRenderer.pdb
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\ToolRenderer.csproj.AssemblyReference.cache
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\ToolRenderer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\ToolRenderer.AssemblyInfoInputs.cache
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\ToolRenderer.AssemblyInfo.cs
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\ToolRenderer.csproj.CoreCompileInputs.cache
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\ToolRenderer.dll
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\refint\ToolRenderer.dll
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\ToolRenderer.pdb
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\obj\Debug\ref\ToolRenderer.dll

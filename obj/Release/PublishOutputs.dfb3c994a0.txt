@@ -1,0 +1,5 @@
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Release\Mods\mod\publish\assets\toolrenderer\lang\en.json
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Release\Mods\mod\publish\modinfo.json
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Release\Mods\mod\publish\ToolRenderer.dll
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Release\Mods\mod\publish\ToolRenderer.deps.json
+C:\Users\stewb\source\repos\ToolRenderer\ToolRenderer\ToolRenderer\bin\Release\Mods\mod\publish\ToolRenderer.pdb

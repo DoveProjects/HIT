@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "vGa3T+w75bA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\stewb\\source\\repos\\ToolRenderer\\ToolRenderer\\ToolRenderer\\ToolRenderer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\stewb\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\7.0.19\\microsoft.windowsdesktop.app.ref.7.0.19.nupkg.sha512",
+    "C:\\Users\\stewb\\.nuget\\packages\\microsoft.netcore.app.ref\\7.0.19\\microsoft.netcore.app.ref.7.0.19.nupkg.sha512",
+    "C:\\Users\\stewb\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\7.0.19\\microsoft.aspnetcore.app.ref.7.0.19.nupkg.sha512"
+  ],
+  "logs": []
+}
