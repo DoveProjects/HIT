@@ -2,10 +2,13 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
+using HIT.Config;
 
-namespace RandomMods.ToolRenderer;
+namespace HIT;
 public class ToolRenderModSystem : ModSystem
 {
+    public static HITConfig HITConfig { get; private set; }
+
     public const int TotalSlots = 5;
     public const int ShieldSlotId = 4;
 
@@ -90,5 +93,11 @@ public class ToolRenderModSystem : ModSystem
 
         var msg = watcher.GenerateUpdateMessage();
         ServerChannel.SendPacket(msg, fromplayer);
+    }
+    public override void AssetsFinalize(ICoreAPI api)
+    {
+        HITConfig = ModConfig.ReadConfig<HITConfig>(api, "Harper's Immersive Tools.json"); //initialize the config
+
+        api.World.Config.SetBool("Favorited_Slots_Enabled", HITConfig.Favorited_Slots_Enabled); //apply config bools for use in json patches
     }
 }

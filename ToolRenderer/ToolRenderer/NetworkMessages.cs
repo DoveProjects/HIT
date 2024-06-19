@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ProtoBuf;
 
-namespace RandomMods.ToolRenderer;
+namespace HIT;
 
 public enum BackPackType //initializing a var to hold the variations of the backpack for later checking
 {
@@ -22,7 +22,7 @@ public class UpdatePlayerTools
 {
     public string PlayerUid = null!;
     public BackPackType BackPackType = BackPackType.None;
-    public Dictionary<int, SlotData?> RenderedTools = null!;
+    public Dictionary<int, SlotData> RenderedTools = null!;
 }
 
 [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]

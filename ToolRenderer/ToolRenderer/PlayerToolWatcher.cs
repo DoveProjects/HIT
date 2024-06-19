@@ -4,15 +4,17 @@ using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;
+using HIT.Config;
 
-namespace RandomMods.ToolRenderer;
+namespace HIT;
 
 public class PlayerToolWatcher
 {
     private readonly IPlayer _player; //player
-    private readonly ItemSlot?[] _bodyArray = new ItemSlot[ToolRenderModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
+    private readonly ItemSlot[] _bodyArray = new ItemSlot[ToolRenderModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
     private readonly List<IInventory> _inventories; //declared here for use in combining inventories for XSkills Compat (adds extra inv)
-    private readonly IInventory? _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
+    private readonly List<int> _favorites = ToolRenderModSystem.HITConfig.Favorited_Slots; //favorited hotbar slots grabbed from the config file
+    private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
     private BackPackType _backPackType; //self explanatory
     public PlayerToolWatcher(IPlayer player)
     {
@@ -20,7 +22,7 @@ public class PlayerToolWatcher
 
         _inventories = GetToolInventories(); //adds the IInventories to inventories
 
-        _backpacks = _player.InventoryManager.GetOwnInventory(GlobalConstants.backpackInvClassName); 
+        _backpacks = _player.InventoryManager.GetOwnInventory(GlobalConstants.backpackInvClassName);
         if (_backpacks != null)
         {
             CheckBackpackType();
@@ -39,11 +41,11 @@ public class PlayerToolWatcher
     {
         if (_backpacks == null) return; //return null so whatever called it knows no backpack exists
         _backPackType = BackPackType.None; //reset var to prevent overflow
-        if (_backpacks.Any(slot => slot is ItemSlotBackpack && (slot.Itemstack?.Collectible?.Code?.Path == "backpack"))) //if the path just has backpack it's a leather backpack
+        if (_backpacks.Any(slot => slot is ItemSlotBackpack && slot.Itemstack?.Collectible?.Code?.Path == "backpack")) //if the path just has backpack it's a leather backpack
         {
             _backPackType = BackPackType.Leather;
         }
-        else if (_backpacks.Any(slot => slot is ItemSlotBackpack && (slot.Itemstack?.Collectible?.Code?.Path == "hunterbackpack"))) //else if the path has hunterbackpack it's self explanatory
+        else if (_backpacks.Any(slot => slot is ItemSlotBackpack && slot.Itemstack?.Collectible?.Code?.Path == "hunterbackpack")) //else if the path has hunterbackpack it's self explanatory
         {
             _backPackType = BackPackType.Hunter;
         }
@@ -75,7 +77,7 @@ public class PlayerToolWatcher
         return inventories;
     }
 
-    private void TryOccupySlot(ItemSlot itemSlot, int[] fitsInto, ItemSlot?[] slotsArray)
+    private void TryOccupySlot(ItemSlot itemSlot, int[] fitsInto, ItemSlot[] slotsArray)
     {
         foreach (var i in fitsInto) //loops through the list of sheaths
         {
@@ -100,7 +102,12 @@ public class PlayerToolWatcher
     {
         foreach (ItemSlot itemSlot in inventory) //loop through inv
         {
+            Console.WriteLine("Current slot ID: {0}", itemSlot);
             if (itemSlot.Itemstack == null) continue; //if blank slot, skip
+            if (ToolRenderModSystem.HITConfig.Favorited_Slots_Enabled) //if favorited slots enabled in config, skip if slot isn't favorited
+            {
+                if (_favorites.IndexOf(inventory.GetSlotId(itemSlot)) == -1) continue;
+            }
 
             if (itemSlot.Itemstack.Collectible is ItemShield) //shields can only fit into the 4th (shield) slot, so it passes that for fitsInto
             {
@@ -132,7 +139,8 @@ public class PlayerToolWatcher
             PlayerUid = _player.PlayerUID,
             RenderedTools = _bodyArray.Select(
                     (slot, index) =>
-                        new {
+                        new
+                        {
                             Key = index,
                             Value = slot?.Itemstack.Collectible == null //if slot full, and it's a type collectible (for shields AND tools) create a new slot in dict
                                 ? null
