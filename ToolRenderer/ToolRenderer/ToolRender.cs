@@ -9,7 +9,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace RandomMods.ToolRenderer;
+namespace HIT;
 
 enum CustomTransform
 {
@@ -26,8 +26,8 @@ public class ToolRenderer : IRenderer
 
     private readonly float[] _modelMat = Mat4f.Create();
 
-    private readonly MultiTextureMeshRef?[] _playerTools = new MultiTextureMeshRef[ToolRenderModSystem.TotalSlots];
-    private readonly string?[] _slotCodes = new string[ToolRenderModSystem.TotalSlots];
+    private readonly MultiTextureMeshRef[] _playerTools = new MultiTextureMeshRef[ToolRenderModSystem.TotalSlots];
+    private readonly string[] _slotCodes = new string[ToolRenderModSystem.TotalSlots];
     private readonly int[] _textures = new int[ToolRenderModSystem.TotalSlots];
 
     private readonly IPlayer _player;
@@ -117,7 +117,7 @@ public class ToolRenderer : IRenderer
         _api.Event.RegisterRenderer(this, EnumRenderStage.ShadowFar);
     }
 
-    private bool TryGetCustomTransform(int slotId, out ModelTransform? transform)
+    private bool TryGetCustomTransform(int slotId, out ModelTransform transform)
     {
         var code = _slotCodes[slotId];
 
@@ -279,7 +279,7 @@ public class ToolRenderer : IRenderer
         prog?.Stop();
     }
 
-    private void RenderTool(int slotId, IStandardShaderProgram? prog, EntityShapeRenderer rend, ClientAnimator animator)
+    private void RenderTool(int slotId, IStandardShaderProgram prog, EntityShapeRenderer rend, ClientAnimator animator)
     {
         if (_playerTools[slotId] == null) return;
 
@@ -316,7 +316,7 @@ public class ToolRenderer : IRenderer
         Mat4f.RotateX(_modelMat, _modelMat, (float)(ap.RotationX + toolTransform.Rotation.X) * GameMath.DEG2RAD);
         Mat4f.RotateY(_modelMat, _modelMat, (float)(ap.RotationY + toolTransform.Rotation.Y) * GameMath.DEG2RAD);
         Mat4f.RotateZ(_modelMat, _modelMat, (float)(ap.RotationZ + toolTransform.Rotation.Z) * GameMath.DEG2RAD);
-        Mat4f.Translate(_modelMat, _modelMat, -(toolTransform.Origin.X), -(toolTransform.Origin.Y), -(toolTransform.Origin.Z));
+        Mat4f.Translate(_modelMat, _modelMat, -toolTransform.Origin.X, -toolTransform.Origin.Y, -toolTransform.Origin.Z);
 
         var currentShader = _rpi.CurrentActiveShader;
         if (prog != null)
