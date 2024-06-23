@@ -7,19 +7,26 @@ namespace HIT.Config
     {
         public bool Favorited_Slots_Enabled { get; set; } = false;
 
-        public List<int> Favorited_Slots = DefaultFavoritedSlots();
+        //public List<int> Favorited_Slots = DefaultFavoritedSlots();
+        public int Favorited_Slot_1 = 0;
+        public int Favorited_Slot_2 = 1;
+        public int Favorited_Slot_3 = 2;
+        public int Favorited_Slot_4 = 3;
+
+        public static int[] favorite_slots;
+
 
         public HITConfig(ICoreAPI api, HITConfig previousConfig = null)
         {
             if (previousConfig != null)
             {
                 Favorited_Slots_Enabled = previousConfig.Favorited_Slots_Enabled;
-                Favorited_Slots = previousConfig.Favorited_Slots;
+                Favorited_Slot_1 = previousConfig.Favorited_Slot_1;
+                Favorited_Slot_2 = previousConfig.Favorited_Slot_2;
+                Favorited_Slot_3 = previousConfig.Favorited_Slot_3;
+                Favorited_Slot_4 = previousConfig.Favorited_Slot_4;
+                favorite_slots = new int[4] { Favorited_Slot_1, Favorited_Slot_2, Favorited_Slot_3, Favorited_Slot_4 };
             }
-        }
-        public static List<int> DefaultFavoritedSlots()
-        {
-            return new() { 0, 1, 2, 3 };
         }
     }
 }

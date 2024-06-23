@@ -1,0 +1,69 @@
+{
+	"version": 0,
+	"file": "Harper's Immersive Tools.json",
+	"patches": {},
+	"settings": [
+		{
+			"code": "Favorited_Slots_Enabled",
+			"ingui": "setting-favorited-slots-enabled",
+			"comment": "If enabled, only tools placed in the following hotbar slots will render.",
+			"weight": 1.0,
+			"type": "boolean",
+			"default": false
+		},
+		{
+			"code": "Favorited_Slot_1",
+			"ingui": "setting-favorited-slot-1",
+			"comment": "Set to -1 to individually disable.",
+			"weight": 3.0,
+			"default": 0,
+			"range": {
+				"min": -1,
+				"max": 9,
+				"step": 1
+			}
+		},
+		{
+			"code": "Favorited_Slot_2",
+			"ingui": "setting-favorited-slot-2",
+			"comment": "Set to -1 to individually disable.",
+			"weight": 4.0,
+			"default": 1,
+			"range": {
+				"min": -1,
+				"max": 9,
+				"step": 1
+			}
+		},
+		{
+			"code": "Favorited_Slot_3",
+			"ingui": "setting-favorited-slot-3",
+			"comment": "Set to -1 to individually disable.",
+			"weight": 5.0,
+			"default": 2,
+			"range": {
+				"min": -1,
+				"max": 9,
+				"step": 1
+			}
+		},
+		{
+			"code": "Favorited_Slot_4",
+			"ingui": "setting-favorited-slot-4",
+			"comment": "Set to -1 to individually disable.",
+			"weight": 6.0,
+			"default": 3,
+			"range": {
+				"min": -1,
+				"max": 9,
+				"step": 1
+			}
+		}
+	],
+	"formatting": [
+		{
+			"type": "separator",
+			"weight": 2.0
+		}
+	]
+}
