@@ -101,7 +101,6 @@ public class PlayerToolWatcher
     {
         foreach (ItemSlot itemSlot in inventory) //loop through inv
         {
-            Console.WriteLine("Current slot ID: {0}", itemSlot);
             if (itemSlot.Itemstack == null) continue; //if blank slot, skip
             if (HITModSystem.HITConfig.Favorited_Slots_Enabled) //if favorited slots enabled in config, skip if slot isn't favorited
             {
