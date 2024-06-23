@@ -9,9 +9,9 @@ public enum BackPackType //initializing a var to hold the variations of the back
     Leather,
     Hunter
 }
-
-[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-public class SlotData
+//these send messages back from the server and clientside to properly grab things with a light load + other formats for cacheing
+[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)] 
+public class SlotData 
 {
     public string Code = null!;
     public byte[] StackData = null!;
