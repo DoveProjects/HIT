@@ -26,9 +26,9 @@ public class ToolRenderer : IRenderer
 
     private readonly float[] _modelMat = Mat4f.Create();
 
-    private readonly MultiTextureMeshRef[] _playerTools = new MultiTextureMeshRef[ToolRenderModSystem.TotalSlots];
-    private readonly string[] _slotCodes = new string[ToolRenderModSystem.TotalSlots];
-    private readonly int[] _textures = new int[ToolRenderModSystem.TotalSlots];
+    private readonly MultiTextureMeshRef[] _playerTools = new MultiTextureMeshRef[HITModSystem.TotalSlots];
+    private readonly string[] _slotCodes = new string[HITModSystem.TotalSlots];
+    private readonly int[] _textures = new int[HITModSystem.TotalSlots];
 
     private readonly IPlayer _player;
     private readonly IRenderAPI _rpi;
@@ -131,7 +131,7 @@ public class ToolRenderer : IRenderer
                 return true;
             }
 
-            if (code.Contains("shield") && slotId == ToolRenderModSystem.ShieldSlotId)
+            if (code.Contains("shield") && slotId == HITModSystem.ShieldSlotId)
             {
                 transform = CustomTransforms[_shieldTransform];
                 return true;
@@ -172,7 +172,7 @@ public class ToolRenderer : IRenderer
             case BackPackType.None:
                 _shieldTransform = CustomTransform.ShieldDefault;
 
-                if (_playerTools[ToolRenderModSystem.ShieldSlotId] != null)
+                if (_playerTools[HITModSystem.ShieldSlotId] != null)
                 {
                     _backToolsOffset = 0.05f;
                 }

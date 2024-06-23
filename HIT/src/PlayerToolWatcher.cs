@@ -4,16 +4,15 @@ using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;
-using HIT.Config;
 
 namespace HIT;
 
 public class PlayerToolWatcher
 {
     private readonly IPlayer _player; //player
-    private readonly ItemSlot[] _bodyArray = new ItemSlot[ToolRenderModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
+    private readonly ItemSlot[] _bodyArray = new ItemSlot[HITModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
     private readonly List<IInventory> _inventories; //declared here for use in combining inventories for XSkills Compat (adds extra inv)
-    private readonly List<int> _favorites = ToolRenderModSystem.HITConfig.Favorited_Slots; //favorited hotbar slots grabbed from the config file
+    private readonly List<int> _favorites = HITModSystem.HITConfig.Favorited_Slots; //favorited hotbar slots grabbed from the config file
     private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
     private BackPackType _backPackType; //self explanatory
     public PlayerToolWatcher(IPlayer player)
@@ -95,7 +94,7 @@ public class PlayerToolWatcher
             UpdateInventory(inventory);
         }
 
-        ToolRenderModSystem.ServerChannel.BroadcastPacket(GenerateUpdateMessage());//Broadcasts every time inventory shifts
+        HITModSystem.ServerChannel.BroadcastPacket(GenerateUpdateMessage());//Broadcasts every time inventory shifts
     }
 
     private void UpdateInventory(IInventory inventory)
@@ -104,7 +103,7 @@ public class PlayerToolWatcher
         {
             Console.WriteLine("Current slot ID: {0}", itemSlot);
             if (itemSlot.Itemstack == null) continue; //if blank slot, skip
-            if (ToolRenderModSystem.HITConfig.Favorited_Slots_Enabled) //if favorited slots enabled in config, skip if slot isn't favorited
+            if (HITModSystem.HITConfig.Favorited_Slots_Enabled) //if favorited slots enabled in config, skip if slot isn't favorited
             {
                 if (_favorites.IndexOf(inventory.GetSlotId(itemSlot)) == -1) continue;
             }

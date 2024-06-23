@@ -53,6 +53,10 @@
   <Content Include="assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
+  <Compile Remove="assets\hit\config\**" />
+  <Content Remove="assets\hit\config\**" />
+  <EmbeddedResource Remove="assets\hit\config\**" />
+  <None Remove="assets\hit\config\**" />
   <Content Include="modinfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>

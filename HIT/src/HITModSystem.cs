@@ -5,7 +5,7 @@ using Vintagestory.API.Server;
 using HIT.Config;
 
 namespace HIT;
-public class ToolRenderModSystem : ModSystem
+public class HITModSystem : ModSystem
 {
     public static HITConfig HITConfig { get; private set; }
 
