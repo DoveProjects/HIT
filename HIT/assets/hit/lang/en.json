@@ -1,7 +1,13 @@
 {  
-    "setting-favorited-slot-1": "Favorited Slot 1",
-    "setting-favorited-slot-2": "Favorited Slot 2",
-    "setting-favorited-slot-3": "Favorited Slot 3",
-    "setting-favorited-slot-4": "Favorited Slot 4",
+    "title-sheath-rendering": "Sheath Rendering",
+    "title-favorited-slots": "Favorited Hotbar Slots",
+    "setting-forearm_tools_enabled": "Enable Forearm Tools",
+    "setting-tools-on-back-enabled": "Enable Tools On Back",
+    "setting-shields-enabled": "Enable Shields",
+    "setting-favorited-slot-1": "Favorited Slot - 1",
+    "setting-favorited-slot-2": "Favorited Slot - 2",
+    "setting-favorited-slot-3": "Favorited Slot - 3",
+    "setting-favorited-slot-4": "Favorited Slot - 4",
+    "setting-favorited-slot-5": "Favorited Slot - 5",
     "setting-favorited-slots-enabled": "Enable Favorited Slots"
 }

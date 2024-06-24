@@ -4,10 +4,38 @@
 	"patches": {},
 	"settings": [
 		{
+			"type": "separator",
+			"title": "title-sheath-rendering"
+		},
+		{
+			"code": "Forearm_Tools_Enabled",
+			"ingui": "setting-forearm_tools_enabled",
+			"comment": "Show/hide the two forearm sheaths.",
+			"type": "boolean",
+			"default": false
+		},
+		{
+			"code": "Tools_On_Back_Enabled",
+			"ingui": "setting-tools-on-back-enabled",
+			"comment": "Show/hide the two back sheaths.",
+			"type": "boolean",
+			"default": false
+		},
+		{
+			"code": "Shields_Enabled",
+			"ingui": "setting-shields-enabled",
+			"comment": "Show/hide shields on the back or clipped to backpacks.",
+			"type": "boolean",
+			"default": false
+		},
+		{
+			"type": "separator",
+			"title": "title-favorited-slots"
+		},
+		{
 			"code": "Favorited_Slots_Enabled",
 			"ingui": "setting-favorited-slots-enabled",
 			"comment": "If enabled, only tools placed in the following hotbar slots will render.",
-			"weight": 1.0,
 			"type": "boolean",
 			"default": false
 		},
@@ -15,7 +43,6 @@
 			"code": "Favorited_Slot_1",
 			"ingui": "setting-favorited-slot-1",
 			"comment": "Set to -1 to individually disable.",
-			"weight": 3.0,
 			"default": 0,
 			"range": {
 				"min": -1,
@@ -27,7 +54,6 @@
 			"code": "Favorited_Slot_2",
 			"ingui": "setting-favorited-slot-2",
 			"comment": "Set to -1 to individually disable.",
-			"weight": 4.0,
 			"default": 1,
 			"range": {
 				"min": -1,
@@ -39,7 +65,6 @@
 			"code": "Favorited_Slot_3",
 			"ingui": "setting-favorited-slot-3",
 			"comment": "Set to -1 to individually disable.",
-			"weight": 5.0,
 			"default": 2,
 			"range": {
 				"min": -1,
@@ -51,8 +76,18 @@
 			"code": "Favorited_Slot_4",
 			"ingui": "setting-favorited-slot-4",
 			"comment": "Set to -1 to individually disable.",
-			"weight": 6.0,
 			"default": 3,
+			"range": {
+				"min": -1,
+				"max": 9,
+				"step": 1
+			}
+		},
+		{
+			"code": "Favorited_Slot_5",
+			"ingui": "setting-favorited-slot-5",
+			"comment": "Set to -1 to individually disable.",
+			"default": 4,
 			"range": {
 				"min": -1,
 				"max": 9,
@@ -61,9 +96,6 @@
 		}
 	],
 	"formatting": [
-		{
-			"type": "separator",
-			"weight": 2.0
-		}
+		
 	]
 }

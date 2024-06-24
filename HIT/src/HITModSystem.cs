@@ -97,7 +97,5 @@ public class HITModSystem : ModSystem
     public override void AssetsFinalize(ICoreAPI api)
     {
         HITConfig = ModConfig.ReadConfig<HITConfig>(api, "Harper's Immersive Tools.json"); //initialize the config
-
-        api.World.Config.SetBool("Favorited_Slots_Enabled", HITConfig.Favorited_Slots_Enabled); //apply config bools for use in json patches
     }
 }
