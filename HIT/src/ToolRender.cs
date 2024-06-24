@@ -41,7 +41,7 @@ public class ToolRenderer : IRenderer
     private float _backToolsOffset;
 
     //this needs to be changed from => to = for release version
-    private static ModelTransform[] ToolTransforms => new ModelTransform[] {
+    private static ModelTransform[] ToolTransforms = new ModelTransform[] {
         new() //slot 0 left forearm, pointed down, can hold tier 1 tools
         {
             Translation = new Vec3f(-1.3f, -0.52f, -0.695f), // z = -1f
@@ -56,52 +56,52 @@ public class ToolRenderer : IRenderer
         },
         new() //slot 2 diagonal across back, pointed up, can hold tier 4 tools
         {
-            Translation = new Vec3f(-0.05f, -0.72f, -0.565f), //the one at 10 o clock
+            Translation = new Vec3f(-0.05f, -0.69f, -0.54f), //the one at 10 o clock
             Rotation = new Vec3f(45, 0, -90),
-            Scale = 0.8f
+            Scale = 0.85f
         },
         new() //slot 3 diagonal across back, pointed up, can hold tier 4 tools
         {
-            Translation = new Vec3f(-0.975f, -0.72f, -0.565f), //the one at 2 o clock previously -0.5
+            Translation = new Vec3f(-0.975f, -0.69f, -0.54f), //the one at 2 o clock previously -0.5
             Rotation = new Vec3f(-45, 180, -90),
-            Scale = 0.8f
+            Scale = 0.85f
         },
     };
 
     //this needs to be changed from => to = for release version
-    private static Dictionary<CustomTransform, ModelTransform> CustomTransforms => new()
+    private static Dictionary<CustomTransform, ModelTransform> CustomTransforms = new()
     {
         [CustomTransform.ShieldDefault] = new()
         { //shield directly on back
-            Translation = new Vec3f(-0.22f, -0.31f, -1.01f), //x is front and back z is left and right
+            Translation = new Vec3f(-0.2f, -0.22f, -0.96f), //x is front and back z is left and right
             Rotation = new Vec3f(0, 90, 0), //x is roll y is yaw z is pitch
-            Scale = 0.8f
+            Scale = 0.9f
         },
         [CustomTransform.ShieldOnBackpack] = new()
         { //shield on backpack
-            Translation = new Vec3f(0.35f, -0.41f, 0.075f),
+            Translation = new Vec3f(0.3f, -0.41f, 0.06f),
             Rotation = new Vec3f(45, 90, 0),
             Origin = new Vec3f(0, 0, 0),
-            Scale = 0.7f
+            Scale = 0.8f
         },
         [CustomTransform.ShieldOnHunterPack] = new()
         { //shield on hunter backpack
-            Translation = new Vec3f(0.3f, -0.2f, 0.12f),
+            Translation = new Vec3f(0.2f, -0.3f, 0.066f),
             Rotation = new Vec3f(45, 90, 0),
             Origin = new Vec3f(0, 0, 0),
-            Scale = 0.65f
+            Scale = 0.8f
         },
         [CustomTransform.HammerLeft] = new()  //hammer on back, diagonal from left to right
         {
-            Translation = new Vec3f(-0.41f, -0.57f, -0.45f), //the one at 10 o clock
+            Translation = new Vec3f(-0.41f, -0.68f, -0.50f), //the one at 10 o clock
             Rotation = new Vec3f(45, 0, -90),
-            Scale = 0.85f
+            Scale = 0.95f
         },
         [CustomTransform.HammerRight] = new() //hammer on back, diagonal from right to left
         {
-            Translation = new Vec3f(-0.43f, -0.57f, -0.45f), //the one at 2 o clock previously -0.5
+            Translation = new Vec3f(-0.43f, -0.68f, -0.50f), //the one at 2 o clock previously -0.5
             Rotation = new Vec3f(-45, 180, -90),
-            Scale = 0.85f
+            Scale = 0.95f
         }
     };
 
