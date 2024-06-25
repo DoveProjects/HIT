@@ -3,6 +3,8 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using HIT.Config;
+using Vintagestory.API.Util;
+using Vintagestory.GameContent;
 
 namespace HIT;
 public class HITModSystem : ModSystem
@@ -18,11 +20,10 @@ public class HITModSystem : ModSystem
 
     private readonly Dictionary<string, ToolRenderer> _rendererByPlayer = new();
     private readonly Dictionary<string, PlayerToolWatcher> _watcherByPlayer = new();
+    private string configFileName = "harpers_immersive_tools.json";
 
     internal IClientNetworkChannel ClientChannel = null!;
     internal static IServerNetworkChannel ServerChannel = null!;
-
-
 
     public override void StartClientSide(ICoreClientAPI capi)
     {
@@ -66,6 +67,7 @@ public class HITModSystem : ModSystem
     public override void StartServerSide(ICoreServerAPI sapi)
     {
         _sapi = sapi;
+        _sapi.Event.GameWorldSave += GameWorldSave;
         _sapi.Event.PlayerNowPlaying += EventOnPlayerNowPlaying;
         _sapi.Event.PlayerDisconnect += EventOnPlayerDisconnect;
         ServerChannel = _sapi.Network
@@ -97,5 +99,57 @@ public class HITModSystem : ModSystem
     public override void AssetsFinalize(ICoreAPI api)
     {
         HITConfig = ModConfig.ReadConfig<HITConfig>(api, "Harper's Immersive Tools.json"); //initialize the config
+    }
+    internal static HITPlayerConfig PlayerConfig { get; private set; } = null!;
+    private void GameWorldSave()
+    {
+        if (HITConfig.IsDirty)
+        {
+            HITConfig.IsDirty = false;
+            _sapi.StoreModConfig(Config, ConfigFile);
+        }
+
+        PlayerConfig.GameWorldSave(_sapi);
+    }
+
+    internal class HITPlayerConfig
+    {
+        public Dictionary<string, HITPlayerData> Players = new();
+
+        public HITPlayerData? GetPlayerDataByUid(string playerUid, bool shouldCreate)
+        {
+            if (!Players.TryGetValue(playerUid, out var playerData) && shouldCreate)
+            {
+                playerData = new HITPlayerData();
+                playerData.MarkDirty();
+                Add(playerUid, playerData);
+            }
+            return playerData;
+        }
+
+        public HITPlayerData GetPlayerDataByUid(string playerUid)
+        {
+            return GetPlayerDataByUid(playerUid, true)!;
+        }
+
+        internal void GameWorldSave(ICoreServerAPI api)
+        {
+            foreach (KeyValuePair<string, HITPlayerData> playerData in Players)
+            {
+                if (playerData.Value.IsDirty)
+                {
+                    playerData.Value.IsDirty = false;
+                    var data = SerializerUtil.Serialize(playerData.Value);
+                    var player = api.World.PlayerByUid(playerData.Key);
+                    player.WorldData.SetModdata(HITModSystem.HITModSystemDataKey, data);
+                }
+            }
+        }
+
+        public void Add(string playerUid, HITPlayerData playerData)
+        {
+            Players.Add(playerUid, playerData);
+        }
+
     }
 }
