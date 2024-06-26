@@ -16,7 +16,7 @@ namespace HIT.Config
         public static int[] favorite_slots; //static field for use in code only, won't appear in config file
 
         public bool Forearm_Tools_Enabled { get; set; } = true; //Bool to enable/disable the rendering of forearm tools
-        public bool Tools_On_Back_Enabled { get; set; } = true; //Bool to enable/disable the rendering of tools on the back
+        public bool Tools_On_Back_Enabled { get; set; } = true; //Bool to enable/disable the rendering of tools on the back 
         public bool Shields_Enabled { get; set; } = true; //Bool to enable/disable all shield rendering
 
         public HITConfig(ICoreAPI api, HITConfig previousConfig = null)
