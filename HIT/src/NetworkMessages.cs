@@ -21,7 +21,6 @@ public class SlotData
 public class UpdatePlayerTools
 {
     public string PlayerUid = null!;
-    public int[] disabledSlots = null!;
     public BackPackType BackPackType = BackPackType.None;
     public Dictionary<int, SlotData> RenderedTools = null!;
 }
@@ -36,15 +35,7 @@ public class RequestToolsInfo
 public class HITPlayerData
 {
     public bool IsDirty;
-
-    [ProtoMember(1)]
-    public bool ForearmsSheathDisabled;
-
-    [ProtoMember(2)]
-    public bool BackSheathDisabled;
-
-    [ProtoMember(3)]
-    public bool ShieldSlotDisabled;
+    public bool[] DisabledSettings = null!;
 
     internal void MarkDirty()
     {

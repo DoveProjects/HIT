@@ -14,7 +14,7 @@ public class PlayerToolWatcher
     private readonly ItemSlot[] _bodyArray = new ItemSlot[HITModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
     private readonly List<IInventory> _inventories; //declared here for use in combining inventories for XSkills Compat (adds extra inv)
     private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
-    private readonly int[] _disabledSlots;
+    private readonly bool[] _DisabledSettings;
     private BackPackType _backPackType;
     public PlayerToolWatcher(IPlayer player)
     {
@@ -110,7 +110,8 @@ public class PlayerToolWatcher
 
             if (itemSlot.Itemstack.Collectible is ItemShield) 
             {
-                if (HITModSystem.HITConfig.Shields_Enabled) //if shield rendering enabled in config, try to occupy the shield slot (4)
+                if (_DisabledSettings[2]) continue;
+                else if (HITModSystem.HITConfig.Shields_Enabled) //if shield rendering enabled in config, try to occupy the shield slot (4)
                     TryOccupySlot(itemSlot, new[] { 4 }, _bodyArray);
                 continue;
             }
@@ -121,11 +122,13 @@ public class PlayerToolWatcher
                 {
                     case EnumTool.Knife:
                     case EnumTool.Chisel:
-                        if (HITModSystem.HITConfig.Forearm_Tools_Enabled) //if forearm rendering enabled in config, try to occupy a sheath slot
+                        if (_DisabledSettings[0]) continue;//if forearms disabled is true skip
+                        else if (HITModSystem.HITConfig.Forearm_Tools_Enabled) //if forearm rendering enabled in config, try to occupy a sheath slot
                             TryOccupySlot(itemSlot, new[] { 0, 1 }, _bodyArray);
                         break;
                     default:
-                        if (HITModSystem.HITConfig.Tools_On_Back_Enabled) //if tool rendering on back enabled in config, try to occupy a sheath slot
+                        if (_DisabledSettings[1]) continue; // if the backtools disabled is true skip 
+                        else if (HITModSystem.HITConfig.Tools_On_Back_Enabled) //if tool rendering on back enabled in config, try to occupy a sheath slot
                             TryOccupySlot(itemSlot, new[] { 2, 3 }, _bodyArray);
                         break;
                 }
@@ -137,7 +140,7 @@ public class PlayerToolWatcher
     {
         return new UpdatePlayerTools()
         {
-            disabledSlots = _disabledSlots,
+            DisabledSettings = _DisabledSettings,
             BackPackType = _backPackType,
             PlayerUid = _player.PlayerUID,
             RenderedTools = _bodyArray.Select(

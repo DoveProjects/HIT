@@ -3,6 +3,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using HIT.Config;
+using Vintagestory.API.Common.CommandAbbr;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
@@ -13,6 +14,7 @@ public class HITModSystem : ModSystem
 
     public const int TotalSlots = 5;
     public const int ShieldSlotId = 4;
+    public static string HITModSystemDataKey;
 
     private const string ChannelName = "tool_renderer_mod";
     private ICoreClientAPI _capi = null!;
@@ -75,6 +77,40 @@ public class HITModSystem : ModSystem
             .RegisterMessageType<RequestToolsInfo>()
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<RequestToolsInfo>(HandleClientDataRequest);
+
+        CommandArgumentParsers parsers = _capi.ChatCommands.Parsers;
+
+        _sapi.ChatCommands.Create("HIT")
+                .RequiresPrivilege(Privilege.chat)
+                .RequiresPlayer()
+                .BeginSubCommand("disable")
+                    .WithDescription("disables rendering")
+                    .WithArgs(parsers.OptionalWordRange("arms", "back", "shield"))
+                    .HandleWith(OnDisabledSettingsChanged)
+                .EndSub()
+                .Validate();
+    }
+
+    private TextCommandResult OnDisabledSettingsChanged(TextCommandCallingArgs args)
+    {
+        string ChangedSetting = (string)args[0];
+        if (ChangedSetting == "arms")
+        {
+            //change bool array[0] to true
+            return HITModSystem.ServerChannel.BroadcastPacket(GenerateUpdateMessage());
+        }
+        if (ChangedSetting == "back")
+        {
+            //change bool array[1] to true
+        }
+        if (ChangedSetting == "shield")
+        {
+            //change bool array[2] to true
+        }
+        if (args.Parsers[0].IsMissing)
+        {
+            //do all three
+        }
     }
     private void EventOnPlayerDisconnect(IServerPlayer byplayer)
     {
@@ -86,7 +122,7 @@ public class HITModSystem : ModSystem
 
     private void EventOnPlayerNowPlaying(IServerPlayer byplayer)
     {
-        _watcherByPlayer[byplayer.PlayerUID] = new PlayerToolWatcher(byplayer);
+        _watcherByPlayer[byplayer.PlayerUID] = new PlayerToolWatcher(byplayer, );
     }
 
     private void HandleClientDataRequest(IServerPlayer fromplayer, RequestToolsInfo packet)
@@ -98,17 +134,12 @@ public class HITModSystem : ModSystem
     }
     public override void AssetsFinalize(ICoreAPI api)
     {
+        PlayerConfig = new HITPlayerConfig();
         HITConfig = ModConfig.ReadConfig<HITConfig>(api, "Harper's Immersive Tools.json"); //initialize the config
     }
     internal static HITPlayerConfig PlayerConfig { get; private set; } = null!;
     private void GameWorldSave()
     {
-        if (HITConfig.IsDirty)
-        {
-            HITConfig.IsDirty = false;
-            _sapi.StoreModConfig(Config, ConfigFile);
-        }
-
         PlayerConfig.GameWorldSave(_sapi);
     }
 
@@ -124,7 +155,7 @@ public class HITModSystem : ModSystem
                 playerData.MarkDirty();
                 Add(playerUid, playerData);
             }
-            return playerData;
+            return playerData;  
         }
 
         public HITPlayerData GetPlayerDataByUid(string playerUid)
