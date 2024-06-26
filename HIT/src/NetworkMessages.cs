@@ -21,6 +21,7 @@ public class SlotData
 public class UpdatePlayerTools
 {
     public string PlayerUid = null!;
+    public bool[] DisabledSettings = null!;
     public BackPackType BackPackType = BackPackType.None;
     public Dictionary<int, SlotData> RenderedTools = null!;
 }

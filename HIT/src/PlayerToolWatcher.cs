@@ -16,12 +16,14 @@ public class PlayerToolWatcher
     private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
     private readonly bool[] _DisabledSettings;
     private BackPackType _backPackType;
-    public PlayerToolWatcher(IPlayer player)
+    private bool[] DisabledSettingsUpdate = new bool[3];
+    public PlayerToolWatcher(IPlayer player, HITPlayerData playerData)
     {
         _player = player;
 
         _inventories = GetToolInventories(); //adds the IInventories to inventories
 
+        _DisabledSettings = playerData.DisabledSettings;
         _backpacks = _player.InventoryManager.GetOwnInventory(GlobalConstants.backpackInvClassName);
         if (_backpacks != null)
         {
@@ -33,7 +35,6 @@ public class PlayerToolWatcher
         {
             inventory.SlotModified += UpdateInventories;
         }
-
         UpdateInventories(0);
     }
 
@@ -87,6 +88,10 @@ public class PlayerToolWatcher
         }
     }
 
+    private void UpdateDisableConfig(int option)
+    {
+        DisabledSettingsUpdate[0] = true;
+    }
     private void UpdateInventories(int slotId)
     {
         Array.Clear(_bodyArray, 0, _bodyArray.Length); //clears bodyArray to not return false positives
@@ -140,7 +145,7 @@ public class PlayerToolWatcher
     {
         return new UpdatePlayerTools()
         {
-            DisabledSettings = _DisabledSettings,
+            _di
             BackPackType = _backPackType,
             PlayerUid = _player.PlayerUID,
             RenderedTools = _bodyArray.Select(

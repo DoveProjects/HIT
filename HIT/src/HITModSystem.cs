@@ -109,7 +109,7 @@ public class HITModSystem : ModSystem
         }
         if (args.Parsers[0].IsMissing)
         {
-            //do all three
+            return  UpdateDisabledConfig(4);
         }
     }
     private void EventOnPlayerDisconnect(IServerPlayer byplayer)
@@ -122,7 +122,7 @@ public class HITModSystem : ModSystem
 
     private void EventOnPlayerNowPlaying(IServerPlayer byplayer)
     {
-        _watcherByPlayer[byplayer.PlayerUID] = new PlayerToolWatcher(byplayer, );
+        _watcherByPlayer[byplayer.PlayerUID] = new PlayerToolWatcher(byplayer, PlayerConfig.GetPlayerDataByUid(byplayer.PlayerUID));
     }
 
     private void HandleClientDataRequest(IServerPlayer fromplayer, RequestToolsInfo packet)
@@ -135,7 +135,7 @@ public class HITModSystem : ModSystem
     public override void AssetsFinalize(ICoreAPI api)
     {
         PlayerConfig = new HITPlayerConfig();
-        HITConfig = ModConfig.ReadConfig<HITConfig>(api, "Harper's Immersive Tools.json"); //initialize the config
+        HITConfig = ModConfig.ReadConfig<HITConfig>(api, configFileName); //initialize the config
     }
     internal static HITPlayerConfig PlayerConfig { get; private set; } = null!;
     private void GameWorldSave()

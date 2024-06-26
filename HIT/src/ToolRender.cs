@@ -338,7 +338,6 @@ public class ToolRenderer : IRenderer
 
         }
     }
-
     public void Dispose()
     {
         _api.Event.UnregisterRenderer(this, EnumRenderStage.Opaque);
