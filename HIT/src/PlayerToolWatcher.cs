@@ -16,9 +16,9 @@ public class PlayerToolWatcher
     private readonly ItemSlot[] _bodyArray = new ItemSlot[HITModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
     private readonly List<IInventory> _inventories; //declared here for use in combining inventories for XSkills Compat (adds extra inv)
     private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
-    //private readonly bool[] _DisabledSettings;
+    private bool[] _DisabledSettings;
     private BackPackType _backPackType;
-    //private bool[] DisabledSettingsUpdate = new bool[3];
+    private bool[] DisabledSettingsUpdate = new bool[3];
     public PlayerToolWatcher(IPlayer player)
     {
         _player = player;
@@ -54,7 +54,6 @@ public class PlayerToolWatcher
         }
 
     }
-
     private void BackpacksOnSlotModified(int slotId) //when backpack slots are modified
     {
         var currentBackpack = _backPackType; //if the backpack is the same type as the current backpack don't do anything, else, update.
@@ -92,6 +91,7 @@ public class PlayerToolWatcher
 
     /*private void UpdateDisableConfig(int option)
     {
+
         DisabledSettingsUpdate[0] = true;
     }*/
 

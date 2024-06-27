@@ -89,7 +89,7 @@ public class HITModSystem : ModSystem
             .RequiresPlayer()
             .BeginSubCommand("disable")
                 .WithDescription("disables rendering of different sheath types")
-                .WithArgs(parsers.OptionalWordRange("sheath", new string[3] { "arms", "back", "shield" } ))
+                .WithArgs(parsers.OptionalWordRange("arms", "back", "shield"))
                 .HandleWith((args) =>
                 {
                     var player = args.Caller.Player;
@@ -99,13 +99,16 @@ public class HITModSystem : ModSystem
                         switch (ChangedSetting)
                         {
                             case "arms":
-                                renderer.ClientConfig.Forearm_Tools_Enabled = false;
+                                if (renderer.ClientConfig.Forearm_Tools_Enabled) renderer.ClientConfig.Forearm_Tools_Enabled = false;
+                                else renderer.ClientConfig.Forearm_Tools_Enabled = true;
                                 break;
                             case "back":
-                                renderer.ClientConfig.Tools_On_Back_Enabled = false;
+                                if (renderer.ClientConfig.Tools_On_Back_Enabled) renderer.ClientConfig.Tools_On_Back_Enabled = false;
+                                else renderer.ClientConfig.Tools_On_Back_Enabled = true;
                                 break;
                             case "shield":
-                                renderer.ClientConfig.Shields_Enabled = false;
+                                if (renderer.ClientConfig.Shields_Enabled) renderer.ClientConfig.Shields_Enabled = false;
+                                else renderer.ClientConfig.Shields_Enabled = true;
                                 break;
                             default:
                                 return TextCommandResult.Error("Invalid argument.");
