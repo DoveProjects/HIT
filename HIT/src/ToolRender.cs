@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HIT.Config;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,6 +33,7 @@ public class ToolRenderer : IRenderer
 
     private readonly IPlayer _player;
     private readonly IRenderAPI _rpi;
+    public HITConfig ClientConfig;
 
     public double RenderOrder => 0.41;
 
@@ -106,11 +108,12 @@ public class ToolRenderer : IRenderer
     };
 
 
-    public ToolRenderer(ICoreClientAPI api, IPlayer player)
+    public ToolRenderer(ICoreClientAPI api, IPlayer player, HITConfig ClientConfig)
     {
-        _player = player;
         _api = api;
         _rpi = _api.Render;
+        _player = player;
+        this.ClientConfig = ClientConfig;
 
         _api.Event.RegisterRenderer(this, EnumRenderStage.Opaque);
         _api.Event.RegisterRenderer(this, EnumRenderStage.ShadowNear);
@@ -147,7 +150,7 @@ public class ToolRenderer : IRenderer
         Array.Clear(_playerTools, 0, _playerTools.Length);
         Array.Clear(_slotCodes, 0, _slotCodes.Length);
 
-        for (var i = 0; i < _playerTools.Length; i++)
+        for (var i = 0; i < _playerTools.Length; i++) //map the _playerTools array to the _bodyArray data sent over from PlayerToolWatcher
         {
             if (!message.RenderedTools.TryGetValue(i, out var slotData) || slotData == null) continue;
 
@@ -156,6 +159,14 @@ public class ToolRenderer : IRenderer
 
             _slotCodes[i] = slotData.Code;
             var stack = new ItemStack(slotData.StackData);
+
+            _api.Logger.Notification($"[HIT] Hotbar Updated: {ClientConfig.Favorited_Slots_Enabled}, {ClientConfig.favorite_slots.ToString}");
+            //Here we perform our checks against the options set in the client config
+            if ((i == 0 || i == 1) && !ClientConfig.Forearm_Tools_Enabled) continue;
+            if ((i == 2 || i == 3) && !ClientConfig.Tools_On_Back_Enabled) continue;
+            if (i == 4 && !ClientConfig.Shields_Enabled) continue;
+            if (ClientConfig.Favorited_Slots_Enabled)
+                if (Array.IndexOf(ClientConfig.favorite_slots, slotData.HotbarID) == -1) continue;
 
             LoadToolMultiMesh(stack, item, i);
         }

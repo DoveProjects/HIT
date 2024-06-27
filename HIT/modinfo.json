@@ -1,5 +1,6 @@
 {
     "type": "code",
+    "side": "universal",
     "modid": "hit",
     "name": "Harper's Immersive Tools",
     "authors": [

@@ -6,30 +6,42 @@ using HIT.Config;
 using Vintagestory.API.Common.CommandAbbr;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
+using System.IO;
+using Vintagestory.API.MathTools;
+using System.Net.Sockets;
 
 namespace HIT;
 public class HITModSystem : ModSystem
 {
-    public static HITConfig HITConfig { get; private set; }
+    public static HITConfig ClientConfig { get; private set; }
 
     public const int TotalSlots = 5;
     public const int ShieldSlotId = 4;
     public static string HITModSystemDataKey;
 
-    private const string ChannelName = "tool_renderer_mod";
+    private const string configFileName = "harpers_immersive_tools.json";
+    private const string ChannelName = "harpers_tools_mod";
     private ICoreClientAPI _capi = null!;
     private ICoreServerAPI _sapi = null!;
 
     private readonly Dictionary<string, ToolRenderer> _rendererByPlayer = new();
     private readonly Dictionary<string, PlayerToolWatcher> _watcherByPlayer = new();
-    private string configFileName = "harpers_immersive_tools.json";
 
     internal IClientNetworkChannel ClientChannel = null!;
     internal static IServerNetworkChannel ServerChannel = null!;
 
+    public override void StartPre(ICoreAPI api)
+    {
+        if (api.Side == EnumAppSide.Client)
+            ClientConfig = ModConfig.ReadConfig<HITConfig>(api, configFileName); //initialize the config client-side
+    }
+
+    #region Client
     public override void StartClientSide(ICoreClientAPI capi)
     {
         _capi = capi;
+        RegisterClientCommand(capi);
+
         _capi.Event.PlayerEntitySpawn += EventOnPlayerEntitySpawn;
         _capi.Event.PlayerEntityDespawn += EventOnPlayerEntityDespawn;
         ClientChannel = _capi.Network
@@ -37,6 +49,16 @@ public class HITModSystem : ModSystem
             .RegisterMessageType<RequestToolsInfo>()
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<UpdatePlayerTools>(HandleDataFromServer);
+    }
+    private void EventOnPlayerEntitySpawn(IClientPlayer byplayer)
+    {
+        _rendererByPlayer[byplayer.PlayerUID] = new ToolRenderer(_capi, byplayer, ModConfig.LoadConfig<HITConfig>(_capi, configFileName));
+        ClientChannel.SendPacket(new RequestToolsInfo()
+        {
+            PlayerUid = byplayer.PlayerUID,
+            //ClientConfig = ModConfig.ReadConfig<HITConfig>(_capi, configFileName)
+        });
+        _capi.Logger.Notification($"[HIT] {byplayer.PlayerName} loaded in. Grabbing client-side configs.");
     }
 
     private void EventOnPlayerEntityDespawn(IClientPlayer byplayer)
@@ -48,15 +70,6 @@ public class HITModSystem : ModSystem
 
     }
 
-    private void EventOnPlayerEntitySpawn(IClientPlayer byplayer)
-    {
-        _rendererByPlayer[byplayer.PlayerUID] = new ToolRenderer(_capi, byplayer);
-        ClientChannel.SendPacket(new RequestToolsInfo()
-        {
-            PlayerUid = byplayer.PlayerUID
-        });
-    }
-
     private void HandleDataFromServer(UpdatePlayerTools packet)
     {
         if (_rendererByPlayer.TryGetValue(packet.PlayerUid, out var renderer))
@@ -65,11 +78,57 @@ public class HITModSystem : ModSystem
         }
     }
 
+    private void RegisterClientCommand(ICoreClientAPI capi)
+    {
+        capi.Logger.Notification("[HIT] Registering client-side rendering command.");
+        CommandArgumentParsers parsers = capi.ChatCommands.Parsers;
 
+        capi.ChatCommands.Create("hit")
+            .WithDescription("hit parent command")
+            .RequiresPrivilege(Privilege.chat)
+            .RequiresPlayer()
+            .BeginSubCommand("disable")
+                .WithDescription("disables rendering of different sheath types")
+                .WithArgs(parsers.OptionalWordRange("sheath", new string[3] { "arms", "back", "shield" } ))
+                .HandleWith((args) =>
+                {
+                    var player = args.Caller.Player;
+                    if (_rendererByPlayer.TryGetValue(player.PlayerUID, out var renderer))
+                    {
+                        var ChangedSetting = (string)args[0];
+                        switch (ChangedSetting)
+                        {
+                            case "arms":
+                                renderer.ClientConfig.Forearm_Tools_Enabled = false;
+                                break;
+                            case "back":
+                                renderer.ClientConfig.Tools_On_Back_Enabled = false;
+                                break;
+                            case "shield":
+                                renderer.ClientConfig.Shields_Enabled = false;
+                                break;
+                            default:
+                                return TextCommandResult.Error("Invalid argument.");
+                        }
+                        //ClientConfig = ModConfig.WriteConfig<HITConfig>(_capi, settings, configFileName);
+                        return TextCommandResult.Success($"Rendering settings for {player.PlayerName} successfully updated. \nWill take effect on hotbar refresh.");
+                    } 
+                    else
+                    {
+                        return TextCommandResult.Error("No client configs available.");
+                    }
+                        
+                })
+            .EndSub()
+            .Validate();
+    }
+    #endregion
+
+    #region Server
     public override void StartServerSide(ICoreServerAPI sapi)
     {
         _sapi = sapi;
-        _sapi.Event.GameWorldSave += GameWorldSave;
+        //_sapi.Event.GameWorldSave += GameWorldSave;
         _sapi.Event.PlayerNowPlaying += EventOnPlayerNowPlaying;
         _sapi.Event.PlayerDisconnect += EventOnPlayerDisconnect;
         ServerChannel = _sapi.Network
@@ -78,7 +137,7 @@ public class HITModSystem : ModSystem
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<RequestToolsInfo>(HandleClientDataRequest);
 
-        CommandArgumentParsers parsers = _capi.ChatCommands.Parsers;
+        /*CommandArgumentParsers parsers = _capi.ChatCommands.Parsers;
 
         _sapi.ChatCommands.Create("HIT")
                 .RequiresPrivilege(Privilege.chat)
@@ -88,10 +147,10 @@ public class HITModSystem : ModSystem
                     .WithArgs(parsers.OptionalWordRange("arms", "back", "shield"))
                     .HandleWith(OnDisabledSettingsChanged)
                 .EndSub()
-                .Validate();
+                .Validate();*/
     }
 
-    private TextCommandResult OnDisabledSettingsChanged(TextCommandCallingArgs args)
+    /*private TextCommandResult OnDisabledSettingsChanged(TextCommandCallingArgs args)
     {
         string ChangedSetting = (string)args[0];
         if (ChangedSetting == "arms")
@@ -111,7 +170,8 @@ public class HITModSystem : ModSystem
         {
             return  UpdateDisabledConfig(4);
         }
-    }
+    }*/
+
     private void EventOnPlayerDisconnect(IServerPlayer byplayer)
     {
         if (!_watcherByPlayer.TryGetValue(byplayer.PlayerUID, out var watcher)) return;
@@ -122,7 +182,7 @@ public class HITModSystem : ModSystem
 
     private void EventOnPlayerNowPlaying(IServerPlayer byplayer)
     {
-        _watcherByPlayer[byplayer.PlayerUID] = new PlayerToolWatcher(byplayer, PlayerConfig.GetPlayerDataByUid(byplayer.PlayerUID));
+        _watcherByPlayer[byplayer.PlayerUID] = new PlayerToolWatcher(byplayer);
     }
 
     private void HandleClientDataRequest(IServerPlayer fromplayer, RequestToolsInfo packet)
@@ -132,11 +192,14 @@ public class HITModSystem : ModSystem
         var msg = watcher.GenerateUpdateMessage();
         ServerChannel.SendPacket(msg, fromplayer);
     }
-    public override void AssetsFinalize(ICoreAPI api)
+    #endregion
+
+    /*public override void AssetsFinalize(ICoreAPI api)
     {
         PlayerConfig = new HITPlayerConfig();
         HITConfig = ModConfig.ReadConfig<HITConfig>(api, configFileName); //initialize the config
     }
+
     internal static HITPlayerConfig PlayerConfig { get; private set; } = null!;
     private void GameWorldSave()
     {
@@ -182,5 +245,5 @@ public class HITModSystem : ModSystem
             Players.Add(playerUid, playerData);
         }
 
-    }
+    }*/
 }
