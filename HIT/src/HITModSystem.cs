@@ -3,21 +3,13 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Common.CommandAbbr;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
-using System.IO;
-using Vintagestory.API.MathTools;
-using System.Net.Sockets;
 using IConfig;
 
 namespace HIT;
 public class HITModSystem : ModSystem
 {
-    public static HITConfig ClientConfig { get; private set; }
-
     public const int TotalSlots = 5;
     public const int ShieldSlotId = 4;
-    //private static string HITModSystemDataKey;
 
     private const string configFileName = "harpers_immersive_tools.json";
     private const string ChannelName = "harpers_tools_mod";
@@ -26,6 +18,7 @@ public class HITModSystem : ModSystem
 
     private readonly Dictionary<string, ToolRenderer> _rendererByPlayer = new();
     private readonly Dictionary<string, PlayerToolWatcher> _watcherByPlayer = new();
+    private static HITConfig ClientConfig;
 
     internal IClientNetworkChannel ClientChannel = null!;
     internal static IServerNetworkChannel ServerChannel = null!;
@@ -40,7 +33,7 @@ public class HITModSystem : ModSystem
     public override void StartClientSide(ICoreClientAPI capi)
     {
         _capi = capi;
-        RegisterClientCommand(capi);
+        RegisterHITClientCommand(capi);
 
         _capi.Event.PlayerEntitySpawn += EventOnPlayerEntitySpawn;
         _capi.Event.PlayerEntityDespawn += EventOnPlayerEntityDespawn;
@@ -52,13 +45,12 @@ public class HITModSystem : ModSystem
     }
     private void EventOnPlayerEntitySpawn(IClientPlayer byplayer)
     {
-        _rendererByPlayer[byplayer.PlayerUID] = new ToolRenderer(_capi, byplayer, ModConfig.LoadConfig<HITConfig>(_capi, configFileName));
+        ClientConfig = ModConfig.LoadConfig<HITConfig>(_capi, configFileName);
+        _rendererByPlayer[byplayer.PlayerUID] = new ToolRenderer(_capi, byplayer, ClientConfig);
         ClientChannel.SendPacket(new RequestToolsInfo()
         {
-            PlayerUid = byplayer.PlayerUID,
-            //ClientConfig = ModConfig.ReadConfig<HITConfig>(_capi, configFileName)
+            PlayerUid = byplayer.PlayerUID
         });
-        _capi.Logger.Notification($"[HIT] {byplayer.PlayerName} loaded in. Grabbing client-side configs.");
     }
 
     private void EventOnPlayerEntityDespawn(IClientPlayer byplayer)
@@ -78,7 +70,7 @@ public class HITModSystem : ModSystem
         }
     }
 
-    private void RegisterClientCommand(ICoreClientAPI capi)
+    private void RegisterHITClientCommand(ICoreClientAPI capi)
     {
         capi.Logger.Notification("[HIT] Registering client-side rendering command.");
         CommandArgumentParsers parsers = capi.ChatCommands.Parsers;
@@ -88,39 +80,66 @@ public class HITModSystem : ModSystem
             .RequiresPrivilege(Privilege.chat)
             .RequiresPlayer()
             .BeginSubCommand("disable")
-                .WithDescription("disables rendering of different sheath types")
-                .WithArgs(parsers.OptionalWordRange("sheath", new string[3] { "arms", "back", "shield" }))
-                .HandleWith((args) =>
-                {
-                    var player = args.Caller.Player;
-                    if (_rendererByPlayer.TryGetValue(player.PlayerUID, out var renderer))
-                    {
-                        var ChangedSetting = (string)args[0];
-                        switch (ChangedSetting)
-                        {
-                            case "arms":
-                                renderer.ClientConfig.Forearm_Tools_Enabled = true;
-                                break;
-                            case "back":
-                                renderer.ClientConfig.Tools_On_Back_Enabled = true;
-                                break;
-                            case "shield":
-                                renderer.ClientConfig.Shields_Enabled = true;
-                                break;
-                            default:
-                                return TextCommandResult.Error("");
-                        }
-                        //ModConfig.GenerateConfig<HITConfig>(_capi, configFileName);
-                        return TextCommandResult.Success($"Rendering settings for {player.PlayerName} successfully updated. \nWill take effect on hotbar refresh.");
-                    } 
-                    else
-                    {
-                        return TextCommandResult.Error("No client configs available.");
-                    }
-                        
-                })
+                .WithDescription("Disables certain tool rendering settings")
+                .WithArgs(parsers.OptionalWordRange("setting", new string[4] { "arms", "back", "shields", "favorites" }))
+                .HandleWith((args) => { return OnToggleConfigSetting(capi, args, false); })
+            .EndSub()
+            .BeginSubCommand("enable")
+                .WithDescription("Enables certain tool rendering settings")
+                .WithArgs(parsers.OptionalWordRange("setting", new string[4] { "arms", "back", "shields", "favorites" } ))
+                .HandleWith((args) => { return OnToggleConfigSetting(capi, args, true); })
+            .EndSub()
+            .BeginSubCommand("set-favorites")
+                .WithDescription("Sets up to 5 favorited hotbar slots for selective tool rendering [Default 1-5]")
+                .HandleWith((args) => { return OnSetFavoriteSlots(capi, args); })
             .EndSub()
             .Validate();
+    }
+
+    private TextCommandResult OnToggleConfigSetting(ICoreClientAPI capi, TextCommandCallingArgs args, bool toggled)
+    {
+        var player = args.Caller.Player;
+        if (_rendererByPlayer.TryGetValue(player.PlayerUID, out var renderer))
+        {
+            var ChangedSetting = (string)args[0];
+            switch (ChangedSetting)
+            {
+                case "arms":
+                    renderer.ClientConfig.Forearm_Tools_Enabled = toggled;
+                    break;
+                case "back":
+                    renderer.ClientConfig.Tools_On_Back_Enabled = toggled;
+                    break;
+                case "shields":
+                    renderer.ClientConfig.Shields_Enabled = toggled;
+                    break;
+                case "favorites":
+                    renderer.ClientConfig.Favorited_Slots_Enabled = toggled;
+                    break;
+                default:
+                    return TextCommandResult.Error("");
+            }
+            ModConfig.SaveConfig<HITConfig>(capi, renderer.ClientConfig, configFileName);
+            return TextCommandResult.Success($"Rendering settings for {player.PlayerName} successfully updated. \nWill take effect on hotbar refresh.");
+        }
+        else
+        {
+            return TextCommandResult.Error("No client configs available.");
+        }
+    }
+
+    private TextCommandResult OnSetFavoriteSlots(ICoreClientAPI capi, TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player;
+        if (_rendererByPlayer.TryGetValue(player.PlayerUID, out var renderer))
+        {
+            //TO-DO: figure out the best way to get a set of int args through commands
+            return TextCommandResult.Success();
+        }
+        else
+        {
+            return TextCommandResult.Error("No client configs available.");
+        }
     }
     #endregion
 
@@ -128,7 +147,6 @@ public class HITModSystem : ModSystem
     public override void StartServerSide(ICoreServerAPI sapi)
     {
         _sapi = sapi;
-        //_sapi.Event.GameWorldSave += GameWorldSave;
         _sapi.Event.PlayerNowPlaying += EventOnPlayerNowPlaying;
         _sapi.Event.PlayerDisconnect += EventOnPlayerDisconnect;
         ServerChannel = _sapi.Network
@@ -136,41 +154,7 @@ public class HITModSystem : ModSystem
             .RegisterMessageType<RequestToolsInfo>()
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<RequestToolsInfo>(HandleClientDataRequest);
-
-        /*CommandArgumentParsers parsers = _capi.ChatCommands.Parsers;
-
-        _sapi.ChatCommands.Create("HIT")
-                .RequiresPrivilege(Privilege.chat)
-                .RequiresPlayer()
-                .BeginSubCommand("disable")
-                    .WithDescription("disables rendering")
-                    .WithArgs(parsers.OptionalWordRange("arms", "back", "shield"))
-                    .HandleWith(OnDisabledSettingsChanged)
-                .EndSub()
-                .Validate();*/
     }
-
-    /*private TextCommandResult OnDisabledSettingsChanged(TextCommandCallingArgs args)
-    {
-        string ChangedSetting = (string)args[0];
-        if (ChangedSetting == "arms")
-        {
-            //change bool array[0] to true
-            return HITModSystem.ServerChannel.BroadcastPacket(GenerateUpdateMessage());
-        }
-        if (ChangedSetting == "back")
-        {
-            //change bool array[1] to true
-        }
-        if (ChangedSetting == "shield")
-        {
-            //change bool array[2] to true
-        }
-        if (args.Parsers[0].IsMissing)
-        {
-            return  UpdateDisabledConfig(4);
-        }
-    }*/
 
     private void EventOnPlayerDisconnect(IServerPlayer byplayer)
     {
