@@ -35,64 +35,15 @@
 		{
 			"code": "Favorited_Slots_Enabled",
 			"ingui": "setting-favorited-slots-enabled",
-			"comment": "If enabled, only tools placed in the following hotbar slots will render.",
+			"comment": "If enabled, only tools placed in favorited hotbar slots will render.",
 			"type": "boolean",
 			"default": false
 		},
 		{
-			"code": "Favorited_Slot_1",
-			"ingui": "setting-favorited-slot-1",
-			"comment": "Set to -1 to individually disable.",
-			"default": 0,
-			"range": {
-				"min": -1,
-				"max": 9,
-				"step": 1
-			}
-		},
-		{
-			"code": "Favorited_Slot_2",
-			"ingui": "setting-favorited-slot-2",
-			"comment": "Set to -1 to individually disable.",
-			"default": 1,
-			"range": {
-				"min": -1,
-				"max": 9,
-				"step": 1
-			}
-		},
-		{
-			"code": "Favorited_Slot_3",
-			"ingui": "setting-favorited-slot-3",
-			"comment": "Set to -1 to individually disable.",
-			"default": 2,
-			"range": {
-				"min": -1,
-				"max": 9,
-				"step": 1
-			}
-		},
-		{
-			"code": "Favorited_Slot_4",
-			"ingui": "setting-favorited-slot-4",
-			"comment": "Set to -1 to individually disable.",
-			"default": 3,
-			"range": {
-				"min": -1,
-				"max": 9,
-				"step": 1
-			}
-		},
-		{
-			"code": "Favorited_Slot_5",
-			"ingui": "setting-favorited-slot-5",
-			"comment": "Set to -1 to individually disable.",
-			"default": 4,
-			"range": {
-				"min": -1,
-				"max": 9,
-				"step": 1
-			}
+			"code": "Favorited_Slots",
+			"ingui": "setting-favorited-slots",
+			"comment": "(Default: Slots 1-5. Slots can be added/removed in the config file.)",
+			"default": 0
 		}
 	],
 	"formatting": [

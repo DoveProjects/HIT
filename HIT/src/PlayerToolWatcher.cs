@@ -4,14 +4,11 @@ using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;
-using HIT.Config;
 
 namespace HIT;
 
 public class PlayerToolWatcher
 {
-    //private readonly HITConfig _clientConfig;
-
     private readonly IPlayer _player; //player
     private readonly ItemSlot[] _bodyArray = new ItemSlot[HITModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
     private readonly List<IInventory> _inventories; //declared here for use in combining inventories for XSkills Compat (adds extra inv)
@@ -22,7 +19,6 @@ public class PlayerToolWatcher
     public PlayerToolWatcher(IPlayer player)
     {
         _player = player;
-        //_clientConfig = ClientConfig;
         _inventories = GetToolInventories(); //adds the IInventories to inventories
 
         //_DisabledSettings = playerData.DisabledSettings;

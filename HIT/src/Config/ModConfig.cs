@@ -1,7 +1,7 @@
 using System;
 using Vintagestory.API.Common;
 
-namespace HIT.Config
+namespace IConfig
 {
     public static class ModConfig
     {
@@ -32,17 +32,12 @@ namespace HIT.Config
             return config;
         }
 
-        /*public static T WriteConfig<T>(ICoreAPI api, string jsonConfig, jsonSerializableData data) where T: class, IModConfig
-        {
-            return api.StoreModConfig<T>(jsonConfig, data);
-        }*/
-
         public static T LoadConfig<T>(ICoreAPI api, string jsonConfig) where T : IModConfig
         {
             return api.LoadModConfig<T>(jsonConfig);
         }
 
-        private static void GenerateConfig<T>(ICoreAPI api, string jsonConfig, T previousConfig = null) where T : class, IModConfig
+        public static void GenerateConfig<T>(ICoreAPI api, string jsonConfig, T previousConfig = null) where T : class, IModConfig
         {
             api.StoreModConfig(CloneConfig<T>(api, previousConfig), jsonConfig);
         }

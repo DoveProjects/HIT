@@ -1,5 +1,4 @@
-﻿using HIT.Config;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,6 +8,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
+using IConfig;
 
 namespace HIT;
 
@@ -160,13 +160,12 @@ public class ToolRenderer : IRenderer
             _slotCodes[i] = slotData.Code;
             var stack = new ItemStack(slotData.StackData);
 
-            _api.Logger.Notification($"[HIT] Hotbar Updated: {ClientConfig.Favorited_Slots_Enabled}, {ClientConfig.favorite_slots.ToString}");
             //Here we perform our checks against the options set in the client config
             if ((i == 0 || i == 1) && !ClientConfig.Forearm_Tools_Enabled) continue;
             if ((i == 2 || i == 3) && !ClientConfig.Tools_On_Back_Enabled) continue;
             if (i == 4 && !ClientConfig.Shields_Enabled) continue;
             if (ClientConfig.Favorited_Slots_Enabled)
-                if (Array.IndexOf(ClientConfig.favorite_slots, slotData.HotbarID) == -1) continue;
+                if (Array.IndexOf(ClientConfig.Favorited_Slots, slotData.HotbarID) == -1) continue;
 
             LoadToolMultiMesh(stack, item, i);
         }

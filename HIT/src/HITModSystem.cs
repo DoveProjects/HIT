@@ -2,13 +2,13 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
-using HIT.Config;
 using Vintagestory.API.Common.CommandAbbr;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 using System.IO;
 using Vintagestory.API.MathTools;
 using System.Net.Sockets;
+using IConfig;
 
 namespace HIT;
 public class HITModSystem : ModSystem
@@ -17,7 +17,7 @@ public class HITModSystem : ModSystem
 
     public const int TotalSlots = 5;
     public const int ShieldSlotId = 4;
-    public static string HITModSystemDataKey;
+    //private static string HITModSystemDataKey;
 
     private const string configFileName = "harpers_immersive_tools.json";
     private const string ChannelName = "harpers_tools_mod";
@@ -89,7 +89,7 @@ public class HITModSystem : ModSystem
             .RequiresPlayer()
             .BeginSubCommand("disable")
                 .WithDescription("disables rendering of different sheath types")
-                .WithArgs(parsers.OptionalWordRange("arms", "back", "shield"))
+                .WithArgs(parsers.OptionalWordRange("sheath", new string[3] { "arms", "back", "shield" }))
                 .HandleWith((args) =>
                 {
                     var player = args.Caller.Player;
@@ -99,21 +99,18 @@ public class HITModSystem : ModSystem
                         switch (ChangedSetting)
                         {
                             case "arms":
-                                if (renderer.ClientConfig.Forearm_Tools_Enabled) renderer.ClientConfig.Forearm_Tools_Enabled = false;
-                                else renderer.ClientConfig.Forearm_Tools_Enabled = true;
+                                renderer.ClientConfig.Forearm_Tools_Enabled = true;
                                 break;
                             case "back":
-                                if (renderer.ClientConfig.Tools_On_Back_Enabled) renderer.ClientConfig.Tools_On_Back_Enabled = false;
-                                else renderer.ClientConfig.Tools_On_Back_Enabled = true;
+                                renderer.ClientConfig.Tools_On_Back_Enabled = true;
                                 break;
                             case "shield":
-                                if (renderer.ClientConfig.Shields_Enabled) renderer.ClientConfig.Shields_Enabled = false;
-                                else renderer.ClientConfig.Shields_Enabled = true;
+                                renderer.ClientConfig.Shields_Enabled = true;
                                 break;
                             default:
-                                return TextCommandResult.Error("Invalid argument.");
+                                return TextCommandResult.Error("");
                         }
-                        //ClientConfig = ModConfig.WriteConfig<HITConfig>(_capi, settings, configFileName);
+                        //ModConfig.GenerateConfig<HITConfig>(_capi, configFileName);
                         return TextCommandResult.Success($"Rendering settings for {player.PlayerName} successfully updated. \nWill take effect on hotbar refresh.");
                     } 
                     else
