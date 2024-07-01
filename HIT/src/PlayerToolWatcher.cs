@@ -13,15 +13,14 @@ public class PlayerToolWatcher
     private readonly ItemSlot[] _bodyArray = new ItemSlot[HITModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
     private readonly List<IInventory> _inventories; //declared here for use in combining inventories for XSkills Compat (adds extra inv)
     private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
-    private bool[] _DisabledSettings;
     private BackPackType _backPackType;
-    private bool[] DisabledSettingsUpdate = new bool[3];
-    public PlayerToolWatcher(IPlayer player)
+    public HITConfig ClientConfig;
+    public PlayerToolWatcher(IPlayer player, HITConfig ClientConfig)
     {
         _player = player;
         _inventories = GetToolInventories(); //adds the IInventories to inventories
+        this.ClientConfig = ClientConfig;
 
-        //_DisabledSettings = playerData.DisabledSettings;
         _backpacks = _player.InventoryManager.GetOwnInventory(GlobalConstants.backpackInvClassName);
         if (_backpacks != null)
         {
@@ -85,12 +84,6 @@ public class PlayerToolWatcher
         }
     }
 
-    /*private void UpdateDisableConfig(int option)
-    {
-
-        DisabledSettingsUpdate[0] = true;
-    }*/
-
     private void UpdateInventories(int slotId)
     {
         Array.Clear(_bodyArray, 0, _bodyArray.Length); //clears bodyArray to not return false positives
@@ -107,14 +100,14 @@ public class PlayerToolWatcher
         foreach (ItemSlot itemSlot in inventory) //loop through inv
         {
             if (itemSlot.Itemstack == null) continue; //if blank slot, skip
-            /*if (ClientConfig.Favorited_Slots_Enabled) //if favorited slots enabled in config, skip if slot isn't favorited
+            if (ClientConfig.Favorited_Slots_Enabled) //if favorited slots enabled in config, skip if slot isn't favorited
             {
-                if (Array.IndexOf(HITConfig.favorite_slots, inventory.GetSlotId(itemSlot)) == -1) continue;
-            }*/
+                if (Array.IndexOf(ClientConfig.Favorited_Slots, inventory.GetSlotId(itemSlot)) == -1) continue;
+            }
 
             if (itemSlot.Itemstack.Collectible is ItemShield) 
             {
-                //if (ClientConfig.Shields_Enabled) //if shield rendering enabled in config, try to occupy the shield slot (4)
+                if (ClientConfig.Shields_Enabled) //if shield rendering enabled in config, try to occupy the shield slot (4)
                 TryOccupySlot(itemSlot, new[] { 4 }, _bodyArray);
                 continue;
             }
@@ -125,11 +118,11 @@ public class PlayerToolWatcher
                 {
                     case EnumTool.Knife:
                     case EnumTool.Chisel:
-                        //if (ClientConfig.Forearm_Tools_Enabled) //if forearm rendering enabled in config, try to occupy a sheath slot
+                        if (ClientConfig.Forearm_Tools_Enabled) //if forearm rendering enabled in config, try to occupy a sheath slot
                         TryOccupySlot(itemSlot, new[] { 0, 1 }, _bodyArray);
                         break;
                     default:
-                        //if (ClientConfig.Tools_On_Back_Enabled) //if tool rendering on back enabled in config, try to occupy a sheath slot
+                        if (ClientConfig.Tools_On_Back_Enabled) //if tool rendering on back enabled in config, try to occupy a sheath slot
                         TryOccupySlot(itemSlot, new[] { 2, 3 }, _bodyArray);
                         break;
                 }

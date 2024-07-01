@@ -49,7 +49,7 @@ public class HITModSystem : ModSystem
         //this loads the config for each player and immediately requests the tool info of the player. If we worked around the event of the player join, 
         //their tools would only render to others / themselves when they UPDATED their inventory.
         ClientConfig = ModConfig.LoadConfig<HITConfig>(_capi, configFileName);
-        _rendererByPlayer[byplayer.PlayerUID] = new ToolRenderer(_capi, byplayer, ClientConfig);
+        _rendererByPlayer[byplayer.PlayerUID] = new ToolRenderer(_capi, byplayer);
         ClientChannel.SendPacket(new RequestToolsInfo()
         {
             PlayerUid = byplayer.PlayerUID
@@ -107,27 +107,27 @@ public class HITModSystem : ModSystem
     {
         //this part is just updating the config
         var player = args.Caller.Player;
-        if (_rendererByPlayer.TryGetValue(player.PlayerUID, out var renderer))
+        if (_watcherByPlayer.TryGetValue(player.PlayerUID, out var watcher))
         {
             var ChangedSetting = (string)args[0];
             switch (ChangedSetting)
             {
                 case "arms":
-                    renderer.ClientConfig.Forearm_Tools_Enabled = toggled;
+                    watcher.ClientConfig.Forearm_Tools_Enabled = toggled;
                     break;
                 case "back":
-                    renderer.ClientConfig.Tools_On_Back_Enabled = toggled;
+                    watcher.ClientConfig.Tools_On_Back_Enabled = toggled;
                     break;
                 case "shields":
-                    renderer.ClientConfig.Shields_Enabled = toggled;
+                    watcher.ClientConfig.Shields_Enabled = toggled;
                     break;
                 case "favorites":
-                    renderer.ClientConfig.Favorited_Slots_Enabled = toggled;
+                    watcher.ClientConfig.Favorited_Slots_Enabled = toggled;
                     break;
                 default:
                     return TextCommandResult.Error("");
             }
-            ModConfig.SaveConfig<HITConfig>(capi, renderer.ClientConfig, configFileName); //saving config
+            ModConfig.SaveConfig<HITConfig>(capi, watcher.ClientConfig, configFileName); //saving config
             //you can't easily send a packet after this to update it, so it's best to just have it change when the player does.
             return TextCommandResult.Success($"Rendering settings for {player.PlayerName} successfully updated. Will take effect on hotbar refresh.");
         }
@@ -140,11 +140,11 @@ public class HITModSystem : ModSystem
     private TextCommandResult OnSetFavoriteSlots(ICoreClientAPI capi, TextCommandCallingArgs args) //other handler for config
     {
         var player = args.Caller.Player;
-        if (_rendererByPlayer.TryGetValue(player.PlayerUID, out var renderer))
+        if (_watcherByPlayer.TryGetValue(player.PlayerUID, out var watcher))
         {
             for (int j = 0; j < args.RawArgs.Length || j < 6; j++)
             {
-                renderer.ClientConfig.Favorited_Slots[j] = Int32.Parse(args.RawArgs[j]);
+                watcher.ClientConfig.Favorited_Slots[j] = Int32.Parse(args.RawArgs[j]);
                 //casts the index j of the string to an int to be read. An input might be something like, "56812", (even though it's not in order), and it would parse each one into the int array waiting for it in config.
             }
             return TextCommandResult.Success();
@@ -179,7 +179,7 @@ public class HITModSystem : ModSystem
     //set up dictionary of the updaters to a their playerUID (would get overwritten if they've joined previously)
     private void EventOnPlayerNowPlaying(IServerPlayer byplayer)
     {
-        _watcherByPlayer[byplayer.PlayerUID] = new PlayerToolWatcher(byplayer);
+        _watcherByPlayer[byplayer.PlayerUID] = new PlayerToolWatcher(byplayer, ClientConfig);
     }
     //handles the request through the network the client makes
     private void HandleClientDataRequest(IServerPlayer fromplayer, RequestToolsInfo packet)
@@ -190,57 +190,4 @@ public class HITModSystem : ModSystem
         ServerChannel.SendPacket(msg, fromplayer); //sends the message
     }
     #endregion
-
-    /*public override void AssetsFinalize(ICoreAPI api)
-    {
-        PlayerConfig = new HITPlayerConfig();
-        HITConfig = ModConfig.ReadConfig<HITConfig>(api, configFileName); //initialize the config
-    }
-
-    internal static HITPlayerConfig PlayerConfig { get; private set; } = null!;
-    private void GameWorldSave()
-    {
-        PlayerConfig.GameWorldSave(_sapi);
-    }
-
-    internal class HITPlayerConfig
-    {
-        public Dictionary<string, HITPlayerData> Players = new();
-
-        public HITPlayerData? GetPlayerDataByUid(string playerUid, bool shouldCreate)
-        {
-            if (!Players.TryGetValue(playerUid, out var playerData) && shouldCreate)
-            {
-                playerData = new HITPlayerData();
-                playerData.MarkDirty();
-                Add(playerUid, playerData);
-            }
-            return playerData;  
-        }
-
-        public HITPlayerData GetPlayerDataByUid(string playerUid)
-        {
-            return GetPlayerDataByUid(playerUid, true)!;
-        }
-
-        internal void GameWorldSave(ICoreServerAPI api)
-        {
-            foreach (KeyValuePair<string, HITPlayerData> playerData in Players)
-            {
-                if (playerData.Value.IsDirty)
-                {
-                    playerData.Value.IsDirty = false;
-                    var data = SerializerUtil.Serialize(playerData.Value);
-                    var player = api.World.PlayerByUid(playerData.Key);
-                    player.WorldData.SetModdata(HITModSystem.HITModSystemDataKey, data);
-                }
-            }
-        }
-
-        public void Add(string playerUid, HITPlayerData playerData)
-        {
-            Players.Add(playerUid, playerData);
-        }
-
-    }*/
 }

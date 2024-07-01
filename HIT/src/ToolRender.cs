@@ -33,7 +33,6 @@ public class ToolRenderer : IRenderer
 
     private readonly IPlayer _player;
     private readonly IRenderAPI _rpi;
-    public HITConfig ClientConfig;
 
     public double RenderOrder => 0.41;
 
@@ -108,12 +107,11 @@ public class ToolRenderer : IRenderer
     };
 
     //setting up variables, api, and renderer
-    public ToolRenderer(ICoreClientAPI api, IPlayer player, HITConfig ClientConfig)
+    public ToolRenderer(ICoreClientAPI api, IPlayer player)
     {
         _api = api;
         _rpi = _api.Render;
         _player = player;
-        this.ClientConfig = ClientConfig;
 
         _api.Event.RegisterRenderer(this, EnumRenderStage.Opaque);
         _api.Event.RegisterRenderer(this, EnumRenderStage.ShadowNear);
@@ -163,11 +161,6 @@ public class ToolRenderer : IRenderer
             var stack = new ItemStack(slotData.StackData);
 
             //Here we perform our checks against the options set in the client config
-            if ((i == 0 || i == 1) && !ClientConfig.Forearm_Tools_Enabled) continue;
-            if ((i == 2 || i == 3) && !ClientConfig.Tools_On_Back_Enabled) continue;
-            if (i == 4 && !ClientConfig.Shields_Enabled) continue;
-            if (ClientConfig.Favorited_Slots_Enabled)
-                if (Array.IndexOf(ClientConfig.Favorited_Slots, slotData.HotbarID) == -1) continue;
 
             LoadToolMultiMesh(stack, item, i);
         }
