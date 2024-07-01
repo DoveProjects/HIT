@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;
@@ -15,14 +15,13 @@ public class PlayerToolWatcher
     private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
     private BackPackType _backPackType;
     public HITConfig ClientConfig;
-    public PlayerToolWatcher(IPlayer player, HITConfig ClientConfig)
+    public PlayerToolWatcher(IPlayer player)
     {
         _player = player;
-        _inventories = GetToolInventories(); //adds the IInventories to inventories
-        this.ClientConfig = ClientConfig;
 
-        _backpacks = _player.InventoryManager.GetOwnInventory(GlobalConstants.backpackInvClassName);
-        if (_backpacks != null)
+        _inventories = GetToolInventories(); //adds the IInventories to inventories
+        _backpacks = _player.InventoryManager.GetOwnInventory(GlobalConstants.backpackInvClassName); //grabs the first backpack inventory using VS's global constant
+        if (_backpacks != null) //if a backpack is found, grab its type and register a new event that tracks when backpack slots are updated
         {
             CheckBackpackType();
             _backpacks.SlotModified += BackpacksOnSlotModified;
@@ -49,12 +48,12 @@ public class PlayerToolWatcher
         }
 
     }
-    private void BackpacksOnSlotModified(int slotId) //when backpack slots are modified
+    private void BackpacksOnSlotModified(int slotId) //when backpack slots (the four to the right of the hotbar) are filled/emptied
     {
-        var currentBackpack = _backPackType; //if the backpack is the same type as the current backpack don't do anything, else, update.
+        var currentBackpack = _backPackType; //check the new backpack type
         CheckBackpackType();
 
-        if (currentBackpack != _backPackType) UpdateInventories(0);
+        if (currentBackpack != _backPackType) UpdateInventories(0); //if the existing backpack type doesn't match the new one, update the inventories
 
 
     }
@@ -84,14 +83,16 @@ public class PlayerToolWatcher
         }
     }
 
-    private void UpdateInventories(int slotId)
+    public void UpdateInventories(int slotId)
     {
         Array.Clear(_bodyArray, 0, _bodyArray.Length); //clears bodyArray to not return false positives
-        foreach (var inventory in _inventories) //updates inventory + extraInvs (e.g. XSkills)
+        if (ClientConfig != null) //we do a preliminary check for the client config data before updating, as initialization might lag behind slightly on login
         {
-            UpdateInventory(inventory);
+            foreach (var inventory in _inventories) //updates inventory + extraInvs (e.g. XSkills)
+            {
+                UpdateInventory(inventory);
+            }
         }
-
         HITModSystem.ServerChannel.BroadcastPacket(GenerateUpdateMessage());//Broadcasts every time inventory shifts
     }
 
@@ -100,15 +101,15 @@ public class PlayerToolWatcher
         foreach (ItemSlot itemSlot in inventory) //loop through inv
         {
             if (itemSlot.Itemstack == null) continue; //if blank slot, skip
-            if (ClientConfig.Favorited_Slots_Enabled) //if favorited slots enabled in config, skip if slot isn't favorited
+            if (ClientConfig.Favorited_Slots_Enabled) //check for favorited slots option in the config
             {
-                if (Array.IndexOf(ClientConfig.Favorited_Slots, inventory.GetSlotId(itemSlot)) == -1) continue;
+                if (Array.IndexOf(ClientConfig.Favorited_Slots, inventory.GetSlotId(itemSlot)) == -1) continue; //skip if the hotbar slot doesn't match anything in the config's Favorited_Slots int array
             }
 
             if (itemSlot.Itemstack.Collectible is ItemShield) 
             {
                 if (ClientConfig.Shields_Enabled) //if shield rendering enabled in config, try to occupy the shield slot (4)
-                TryOccupySlot(itemSlot, new[] { 4 }, _bodyArray);
+                    TryOccupySlot(itemSlot, new[] { 4 }, _bodyArray);
                 continue;
             }
 
@@ -119,11 +120,11 @@ public class PlayerToolWatcher
                     case EnumTool.Knife:
                     case EnumTool.Chisel:
                         if (ClientConfig.Forearm_Tools_Enabled) //if forearm rendering enabled in config, try to occupy a sheath slot
-                        TryOccupySlot(itemSlot, new[] { 0, 1 }, _bodyArray);
+                            TryOccupySlot(itemSlot, new[] { 0, 1 }, _bodyArray);
                         break;
                     default:
                         if (ClientConfig.Tools_On_Back_Enabled) //if tool rendering on back enabled in config, try to occupy a sheath slot
-                        TryOccupySlot(itemSlot, new[] { 2, 3 }, _bodyArray);
+                            TryOccupySlot(itemSlot, new[] { 2, 3 }, _bodyArray);
                         break;
                 }
             }
@@ -143,11 +144,10 @@ public class PlayerToolWatcher
                             Key = index,
                             Value = slot?.Itemstack.Collectible == null //if slot full, and it's a type collectible (for shields AND tools) create a new slot in dict
                                 ? null
-                                : new SlotData() //slotdata contains the name of the tool, the type of the itemStack, and its currently occupied hotbar slot
+                                : new SlotData() //slotdata contains the name of the tool and the type of the itemStack
                                 {
                                     Code = slot.Itemstack.Collectible.Code.ToString(),
                                     StackData = slot.Itemstack.ToBytes(),
-                                    HotbarID = slot.Inventory.GetSlotId(slot)
                                 }
                         })
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value) //cacheing the tool into a dictionary

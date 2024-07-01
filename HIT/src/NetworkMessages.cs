@@ -10,42 +10,26 @@ public enum BackPackType //initializing a var to hold the variations of the back
     Hunter
 }
 
-//these send messages back from the server and clientside to properly grab things with a light load + other formats for cacheing
+//these are network messages that are sent back and forth between the client and server, using the ProtoBuf library
+//look up the Network API page on the modding wiki for more information
 [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)] 
-public class SlotData 
+public class SlotData //a custom data structure for relevant hotbar slot info
 {
     public string Code = null!;
     public byte[] StackData = null!;
-    public int HotbarID;
 }
 
 [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-public class UpdatePlayerTools
+public class UpdatePlayerTools //sent from server -> client so the client's renderer knows which tools to update
 {
-    //public HITConfig ClientConfig = null!;
     public string PlayerUid = null!;
     public BackPackType BackPackType = BackPackType.None;
     public Dictionary<int, SlotData> RenderedTools = null!;
 }
 
 [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-public class RequestToolsInfo
+public class RequestToolsInfo //sent from client -> server when the server 'requests' rendering data from each client
 {
     public string PlayerUid = null!;
-    //public HITConfig ClientConfig = null!;
+    public string ConfigData = null!;
 }
-
-/*[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-public class HITPlayerData
-{
-    public bool IsDirty;
-    public bool[] DisabledSettings = null!;
-
-    internal void MarkDirty()
-    {
-        if (!IsDirty)
-        {
-            IsDirty = true;
-        }
-    }
-}*/

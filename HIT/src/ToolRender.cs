@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
-using IConfig;
 
 namespace HIT;
 
@@ -160,8 +158,6 @@ public class ToolRenderer : IRenderer
             _slotCodes[i] = slotData.Code;
             var stack = new ItemStack(slotData.StackData);
 
-            //Here we perform our checks against the options set in the client config
-
             LoadToolMultiMesh(stack, item, i);
         }
         _backToolsOffset = 0;
@@ -176,12 +172,10 @@ public class ToolRenderer : IRenderer
                 break;
             case BackPackType.None:
                 _shieldTransform = CustomTransform.ShieldDefault;
-
                 if (_playerTools[HITModSystem.ShieldSlotId] != null)
                 {
                     _backToolsOffset = 0.075f;
                 }
-
                 break;
         }
     }

@@ -1,6 +1,5 @@
 using System;
 using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
 
 namespace IConfig
 {
@@ -36,7 +35,6 @@ namespace IConfig
         public static void SaveConfig<T>(ICoreAPI api, T configClass, string jsonConfig) where T : IModConfig
         {
             api.StoreModConfig<T>(configClass, jsonConfig);
-            api.Logger.Notification("[HIT] Config updates registered, saving changes...");
         }
 
         public static T LoadConfig<T>(ICoreAPI api, string jsonConfig) where T : IModConfig
