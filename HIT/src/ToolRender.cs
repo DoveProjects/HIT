@@ -42,7 +42,7 @@ public class ToolRenderer : IRenderer
     private CustomTransform _shieldTransform = CustomTransform.ShieldDefault;
     private float _backToolsOffset;
 
-    //this needs to be changed from => to = for release version
+    //these transforms are in relation to the player and hold the 4 slots on the body
     private static ModelTransform[] ToolTransforms = new ModelTransform[] {
         new() //slot 0 left forearm, pointed down, can hold tier 1 tools
         {
@@ -70,7 +70,7 @@ public class ToolRenderer : IRenderer
         },
     };
 
-    //this needs to be changed from => to = for release version
+    //these are alternative transforms for special cases. You can also modify the original transforms for small things as used later for shield offset, but it's clunky.
     private static Dictionary<CustomTransform, ModelTransform> CustomTransforms = new()
     {
         [CustomTransform.ShieldDefault] = new()
@@ -107,7 +107,7 @@ public class ToolRenderer : IRenderer
         }
     };
 
-
+    //setting up variables, api, and renderer
     public ToolRenderer(ICoreClientAPI api, IPlayer player, HITConfig ClientConfig)
     {
         _api = api;
@@ -120,6 +120,7 @@ public class ToolRenderer : IRenderer
         _api.Event.RegisterRenderer(this, EnumRenderStage.ShadowFar);
     }
 
+    //checks for special cases due to saw/hammer having a weird offset and the shield needing its own specific slot for transforms
     private bool TryGetCustomTransform(int slotId, out ModelTransform transform)
     {
         var code = _slotCodes[slotId];
@@ -147,6 +148,7 @@ public class ToolRenderer : IRenderer
 
     public void UpdateRenderedTools(UpdatePlayerTools message)
     {
+        //clear the arrays to avoid the previous models overriding new ones / wiping now-empty slots
         Array.Clear(_playerTools, 0, _playerTools.Length);
         Array.Clear(_slotCodes, 0, _slotCodes.Length);
 
@@ -171,7 +173,7 @@ public class ToolRenderer : IRenderer
         }
         _backToolsOffset = 0;
 
-        switch (message.BackPackType)
+        switch (message.BackPackType) //the switch sorts it based on the backpack type into the transform so it can be picked up later
         {
             case BackPackType.Leather:
                 _shieldTransform = CustomTransform.ShieldOnBackpack;
@@ -193,10 +195,12 @@ public class ToolRenderer : IRenderer
 
     private void LoadToolMultiMesh(ItemStack itemStack, Item item, int slotIndex)
     {
+        //cacheing system. Search "cache" to see where it's used.
         var cache = ObjectCacheUtil.GetOrCreate(
             _api, "EquipToolRenderCache", () => new Dictionary<string, (int texture, MultiTextureMeshRef mesh)>());
-
+        
         var cacheKey = item.Code.ToString();
+        //this mess is just about setting up the itemStack to be put into the cache
         if (itemStack.Attributes.Count > 0)
         {
             var dict = itemStack.Attributes.ToImmutableSortedDictionary();
@@ -211,6 +215,7 @@ public class ToolRenderer : IRenderer
             cacheKey += builder.ToString();
         }
 
+        //if cache doesn't get a value, it returns false. This triggers when that happens to set up a mesh from the itemStack
         if (!cache.TryGetValue(cacheKey, out var info))
         {
             var texSource = _api.Tesselator.GetTextureSource(item);
@@ -251,39 +256,39 @@ public class ToolRenderer : IRenderer
         if (info.mesh == null) return;
 
         _textures[slotIndex] = info.texture;
-        _playerTools[slotIndex] = info.mesh;
+        _playerTools[slotIndex] = info.mesh; //dev note: set the textures / meshes at the end instead of inside the switch case if you have one
     }
 
     public void OnRenderFrame(float deltaTime, EnumRenderStage stage)
     {
-        if (_player == _api.World.Player && _api.World.Player.CameraMode == EnumCameraMode.FirstPerson) return;
-        if (_player.Entity.Properties.Client.Renderer is not EntityShapeRenderer rend) return;
-        if (_player.Entity.AnimManager.Animator is not ClientAnimator animator) return;
+        if (_player == _api.World.Player && _api.World.Player.CameraMode == EnumCameraMode.FirstPerson) return; //if it's in first person mode skip the rendering as a whole
+        if (_player.Entity.Properties.Client.Renderer is not EntityShapeRenderer rend) return; //checking for modded
+        if (_player.Entity.AnimManager.Animator is not ClientAnimator animator) return; //checking for modded
+        //setting up the renderer
         bool isShadowPass = stage != EnumRenderStage.Opaque;
         var skippedLeft = false;
         var skippedRight = false;
         var prog = isShadowPass
             ? null
             : _rpi.PreparedStandardShader((int)_player.Entity.Pos.X, (int)_player.Entity.Pos.Y, (int)_player.Entity.Pos.Z);
-
+        //looping through the tool inventory
         for (int j = 0; j < _playerTools.Length; j++)
         {
-            if (_playerTools[j] == null) continue;
+            if (_playerTools[j] == null) continue; //if empty continue
 
-            if (_slotCodes[j] == _player.InventoryManager.ActiveHotbarSlot?.Itemstack?.Collectible?.Code.ToString() &&
-                !skippedRight)
+            if (_slotCodes[j] == _player.InventoryManager.ActiveHotbarSlot?.Itemstack?.Collectible?.Code.ToString() && !skippedRight) //if it's in the players right hand skip render
             {
                 skippedRight = true;
                 continue;
             }
 
-            if (_slotCodes[j] == _player.Entity.LeftHandItemSlot?.Itemstack?.Collectible?.Code.ToString() && !skippedLeft)
-            {
+            if (_slotCodes[j] == _player.Entity.LeftHandItemSlot?.Itemstack?.Collectible?.Code.ToString() && !skippedLeft) //if its in the player's left hand skip render
+            { 
                 skippedLeft = true;
                 continue;
             }
 
-            RenderTool(j, prog, rend, animator);
+            RenderTool(j, prog, rend, animator); //render tool
         }
 
         prog?.Stop();
@@ -291,17 +296,17 @@ public class ToolRenderer : IRenderer
 
     private void RenderTool(int slotId, IStandardShaderProgram prog, EntityShapeRenderer rend, ClientAnimator animator)
     {
-        if (_playerTools[slotId] == null) return;
+        if (_playerTools[slotId] == null) return; //if the mesh has no reference set skip
 
-        var toolTextureId = _textures[slotId];
-        if (!TryGetCustomTransform(slotId, out var toolTransform) && slotId < ToolTransforms.Length)
+        var toolTextureId = _textures[slotId]; //set the texture
+        if (!TryGetCustomTransform(slotId, out var toolTransform) && slotId < ToolTransforms.Length) //if it needs a custom transform
         {
             toolTransform = ToolTransforms[slotId];
         }
 
-        if (toolTransform == null) return;
+        if (toolTransform == null) return; //if it has no transforms skip
 
-        var attachmentPointName = slotId switch
+        var attachmentPointName = slotId switch //character only has 4 attachment points, hands back and head, so it's using that + transforms for positioning
         {
             0 => "LeftHand",
             1 => "RightHand",
@@ -311,9 +316,11 @@ public class ToolRenderer : IRenderer
         animator.AttachmentPointByCode.TryGetValue(attachmentPointName, out var apap);
 
         if (apap == null) return;
-
+        
+        //small value for if the back sheaths need to be reset to a different default position (only useful if previous render pass had a shield equipped and this didnt)
         var offsetX = slotId is 2 or 3 ? _backToolsOffset : 0f;
 
+        //this is just retrieving the transform info for rendering
         var ap = apap.AttachPoint;
         Mat4f.Copy(_modelMat, rend.ModelMat);
         Mat4f.Mul(_modelMat, _modelMat, apap.CachedPose.AnimModelMatrix);
@@ -329,6 +336,7 @@ public class ToolRenderer : IRenderer
         Mat4f.Translate(_modelMat, _modelMat, -toolTransform.Origin.X, -toolTransform.Origin.Y, -toolTransform.Origin.Z);
 
         var currentShader = _rpi.CurrentActiveShader;
+        //setting up shaders
         if (prog != null)
         {
             prog.UniformMatrix("modelMatrix", _modelMat);
@@ -348,6 +356,7 @@ public class ToolRenderer : IRenderer
 
         }
     }
+    //to prevent memory leaks
     public void Dispose()
     {
         _api.Event.UnregisterRenderer(this, EnumRenderStage.Opaque);
