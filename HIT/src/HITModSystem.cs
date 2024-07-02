@@ -5,6 +5,10 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Common.CommandAbbr;
 using Newtonsoft.Json;
 using IConfig;
+using System;
+using Vintagestory.API.Util;
+using System.Linq.Expressions;
+using Vintagestory.GameContent;
 
 
 namespace HIT;
@@ -25,21 +29,30 @@ public class HITModSystem : ModSystem
     internal IClientNetworkChannel ClientChannel = null!;
     internal static IServerNetworkChannel ServerChannel = null!;
 
-    public override void StartPre(ICoreAPI api)
-    {
-        if (api.Side == EnumAppSide.Client)
-            ClientConfig = ModConfig.ReadConfig<HITConfig>(api, configFileName); //initialize the config client-side
-    }
+    public readonly Dictionary<int, int> HotbarMap = new Dictionary<int, int>(){
+        {1, 0},
+        {2, 1},
+        {3, 2},
+        {4, 3},
+        {5, 4},
+        {6, 5},
+        {7, 6},
+        {8, 7},
+        {9, 8},
+        {0, 9}
+    };
 
     #region Client
+    //Handles registration of all client-side events and message handlers
     public override void StartClientSide(ICoreClientAPI capi)
     {
         _capi = capi;
+        ClientConfig = ModConfig.ReadConfig<HITConfig>(capi, configFileName); //initialize the config client-side
         RegisterHITClientCommand(capi); //registers the core client-side command
 
-        _capi.Event.PlayerEntitySpawn += EventOnPlayerEntitySpawn; //runs the method EventOnPlayerEntitySpawn whenever a player joins for that player
-        _capi.Event.PlayerEntityDespawn += EventOnPlayerEntityDespawn; //see above and see methods for more info
-        ClientChannel = _capi.Network //setting up network for multiplayer
+        _capi.Event.PlayerEntitySpawn += EventOnPlayerEntitySpawn;
+        _capi.Event.PlayerEntityDespawn += EventOnPlayerEntityDespawn;
+        ClientChannel = _capi.Network
             .RegisterChannel(ChannelName)
             .RegisterMessageType<RequestToolsInfo>()
             .RegisterMessageType<UpdatePlayerTools>()
@@ -73,6 +86,15 @@ public class HITModSystem : ModSystem
         }
     }
 
+    //Saves the local config and sends a new packet to the server
+    //Returns a 'success' string for use in commands
+    private string PlayerConfigsUpdated(IPlayer byplayer)
+    {
+        ModConfig.SaveConfig<HITConfig>(_capi, ClientConfig, configFileName); //saves the config file client-side
+        SendClientPacket(byplayer, ClientConfig); //updates it server-side via packet
+        return $"Config settings for {byplayer.PlayerName} successfully updated.";
+    }
+
     //Sends player data and client-side configs to the server as a serialized packet
     private void SendClientPacket(IPlayer byplayer, HITConfig clientConfig)
     {
@@ -82,37 +104,48 @@ public class HITModSystem : ModSystem
             ConfigData = JsonConvert.SerializeObject(clientConfig)
         });
     }
+    #endregion
 
-    //Registers the '.hit' client-side command, and all of its sub-commands
+    #region Commands
+    //Registers the '.hit' client-side command and all of its sub-commands
     private void RegisterHITClientCommand(ICoreClientAPI capi)
     {
         capi.Logger.Notification("[HIT] Registering client-side rendering command.");
         CommandArgumentParsers parsers = capi.ChatCommands.Parsers;
         //the command format is kinda tricky. See the Wiki or Vanilla's commands for worldedit to see the full variety of types
-        capi.ChatCommands.Create("hit") 
+        capi.ChatCommands.Create("hit")
             .WithDescription("hit parent command") //description is for the command handbook
             .RequiresPrivilege(Privilege.chat) //doesnt work for muted players 
             .RequiresPlayer() //important, unless your commands are run through console
             .BeginSubCommand("disable")
                 .WithDescription("Disables certain tool rendering settings")
                 .WithArgs(parsers.OptionalWordRange("setting", new string[4] { "arms", "back", "shields", "favorites" }))
-                .HandleWith((args) => { return OnToggleConfigSetting(capi, args, false); }) //this sets the command to be handled by the 'OnToggleConfigSetting' method below
+                .HandleWith((args) => { return OnToggleConfigSetting(args, false); }) //this sets the command to be handled by the 'OnToggleConfigSetting' method below
             .EndSub()
             .BeginSubCommand("enable")
                 .WithDescription("Enables certain tool rendering settings")
-                .WithArgs(parsers.OptionalWordRange("setting", new string[4] { "arms", "back", "shields", "favorites" } ))
-                .HandleWith((args) => { return OnToggleConfigSetting(capi, args, true); }) //both sub-commands are handled by the same handler method
+                .WithArgs(parsers.OptionalWordRange("setting", new string[4] { "arms", "back", "shields", "favorites" }))
+                .HandleWith((args) => { return OnToggleConfigSetting(args, true); }) //both sub-commands are handled by the same handler method
             .EndSub()
             .BeginSubCommand("set-favorites") //sets up a system that prefers specific slots above others instead of marching through the hotbar in order
                 .WithDescription("Sets up to 5 favorited hotbar slots for selective tool rendering [Default 1-5]")
-                .WithArgs(parsers.OptionalWord("list without spaces"))
-                .HandleWith((args) => { return OnSetFavoriteSlots(capi, args); }) //this one has its own handler method
+                .WithArgs(
+                    parsers.OptionalIntRange("slot 1", 0, 9, -1),
+                    parsers.OptionalIntRange("slot 2", 0, 9, -1),
+                    parsers.OptionalIntRange("slot 3", 0, 9, -1),
+                    parsers.OptionalIntRange("slot 4", 0, 9, -1),
+                    parsers.OptionalIntRange("slot 5", 0, 9, -1))
+                .HandleWith(new OnCommandDelegate(OnSetFavoriteSlots)) //this one has its own handler method, args are automatically passed as the only parameter
+            .EndSub()
+            .BeginSubCommand("reset")
+                .WithDescription("Resets all rendering settings to their default values")
+                .HandleWith(new OnCommandDelegate(OnConfigReset))
             .EndSub()
             .Validate();
     }
 
     //Handles the 'enable' and 'disable' sub-commands
-    private TextCommandResult OnToggleConfigSetting(ICoreClientAPI capi, TextCommandCallingArgs args, bool toggled)
+    private TextCommandResult OnToggleConfigSetting(TextCommandCallingArgs args, bool toggled)
     {
         var player = args.Caller.Player;
         if (ClientConfig != null) //if the player hasn't registered their client-side config, throw an error
@@ -135,9 +168,7 @@ public class HITModSystem : ModSystem
                 default:
                     return TextCommandResult.Error("");
             }
-            ModConfig.SaveConfig<HITConfig>(capi, ClientConfig, configFileName); //saving config client-side
-            SendClientPacket(player, ClientConfig); //and updating it server-side via packet
-            return TextCommandResult.Success($"Rendering settings for {player.PlayerName} successfully updated.");
+            return TextCommandResult.Success(PlayerConfigsUpdated(player));
         }
         else
         {
@@ -145,18 +176,40 @@ public class HITModSystem : ModSystem
         }
     }
 
-    //Handles the 'set-favorites' sub-commands
-    private TextCommandResult OnSetFavoriteSlots(ICoreClientAPI capi, TextCommandCallingArgs args)
+    //Handles the 'set-favorites' sub-command
+    private TextCommandResult OnSetFavoriteSlots(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player;
         if (ClientConfig != null)
         {
-            for (int j = 0; j < args.RawArgs.Length || j < 6; j++)
+            for (int j = 0; j < args.ArgCount; j++) //iterates through each arg, the total of which will always be 5 (will return -1 as a default value if none provided)
             {
-                //casts the index j of the string to an int to be read. An input might be something like, "56812", (even though it's not in order), and it would parse each one into the int array waiting for it in config.
-                //ClientConfig.Favorited_Slots[j] = Int32.Parse(args.RawArgs[j]);
+                if ((int)args[j] != -1) //if an int was provided, update the index in the Favorited_Slots config array using the HotbarMap
+                {
+                    ClientConfig.Favorited_Slots[j] = HotbarMap[(int)args[j]];
+                } 
+                else //otherwise, updates the Favorited_Slots index to -1 to disable it
+                {
+                    ClientConfig.Favorited_Slots[j] = -1;
+                }
             }
-            return TextCommandResult.Success();
+            return TextCommandResult.Success(PlayerConfigsUpdated(player));
+        }
+        else
+        {
+            return TextCommandResult.Error("No client configs available.");
+        }
+    }
+
+    //A simple handler method that resets all config values by regenerating a new config
+    private TextCommandResult OnConfigReset(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player;
+        if (ClientConfig != null)
+        {
+            ClientConfig = new HITConfig(_capi, null);
+            PlayerConfigsUpdated(player);
+            return TextCommandResult.Success($"Config settings reset to default.");
         }
         else
         {
@@ -166,7 +219,8 @@ public class HITModSystem : ModSystem
     #endregion
 
     #region Server
-    public override void StartServerSide(ICoreServerAPI sapi) //handles registration of all server-side events and message handlers
+    //Handles registration of all server-side events and message handlers
+    public override void StartServerSide(ICoreServerAPI sapi) 
     {
         _sapi = sapi;
         _sapi.Event.PlayerNowPlaying += EventOnPlayerNowPlaying;
@@ -207,8 +261,8 @@ public class HITModSystem : ModSystem
             _sapi.Logger.Notification("[HIT] Client config updates registered, passing them on to server...");
         }
 
-        var msg = watcher.GenerateUpdateMessage(); //now we generate a new message containing all of the player's updated tool rendering data
-        ServerChannel.SendPacket(msg, fromplayer); //and send it back to the client
+        var msg = watcher.GenerateUpdateMessage(); //generates a new message containing all of the player's updated tool rendering data
+        ServerChannel.SendPacket(msg, fromplayer); //and sends it back to the client
     }
     #endregion
 }

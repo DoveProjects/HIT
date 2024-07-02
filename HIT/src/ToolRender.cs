@@ -251,6 +251,7 @@ public class ToolRenderer : IRenderer
         if (_player == _api.World.Player && _api.World.Player.CameraMode == EnumCameraMode.FirstPerson) return; //if it's in first person mode skip the rendering as a whole
         if (_player.Entity.Properties.Client.Renderer is not EntityShapeRenderer rend) return; //checking for modded
         if (_player.Entity.AnimManager.Animator is not ClientAnimator animator) return; //checking for modded
+
         //setting up the renderer
         bool isShadowPass = stage != EnumRenderStage.Opaque;
         var skippedLeft = false;
@@ -258,8 +259,8 @@ public class ToolRenderer : IRenderer
         var prog = isShadowPass
             ? null
             : _rpi.PreparedStandardShader((int)_player.Entity.Pos.X, (int)_player.Entity.Pos.Y, (int)_player.Entity.Pos.Z);
-        //looping through the tool inventory
-        for (int j = 0; j < _playerTools.Length; j++)
+        
+        for (int j = 0; j < _playerTools.Length; j++) //looping through the tool inventory
         {
             if (_playerTools[j] == null) continue; //if empty continue
 

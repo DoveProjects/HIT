@@ -1,8 +1,6 @@
 using Vintagestory.API.Common;
 using Newtonsoft.Json;
 using IConfig;
-using Vintagestory.API.Util;
-using System.Text.Json.Serialization;
 
 namespace HIT
 {
