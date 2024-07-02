@@ -5,10 +5,6 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Common.CommandAbbr;
 using Newtonsoft.Json;
 using IConfig;
-using System;
-using Vintagestory.API.Util;
-using System.Linq.Expressions;
-using Vintagestory.GameContent;
 
 
 namespace HIT;
@@ -86,15 +82,6 @@ public class HITModSystem : ModSystem
         }
     }
 
-    //Saves the local config and sends a new packet to the server
-    //Returns a 'success' string for use in commands
-    private string PlayerConfigsUpdated(IPlayer byplayer)
-    {
-        ModConfig.SaveConfig<HITConfig>(_capi, ClientConfig, configFileName); //saves the config file client-side
-        SendClientPacket(byplayer, ClientConfig); //updates it server-side via packet
-        return $"Config settings for {byplayer.PlayerName} successfully updated.";
-    }
-
     //Sends player data and client-side configs to the server as a serialized packet
     private void SendClientPacket(IPlayer byplayer, HITConfig clientConfig)
     {
@@ -103,6 +90,15 @@ public class HITModSystem : ModSystem
             PlayerUid = byplayer.PlayerUID,
             ConfigData = JsonConvert.SerializeObject(clientConfig)
         });
+    }
+
+    //Saves the local config and sends a new packet to the server
+    //Returns a 'success' string for use in commands
+    private string PlayerConfigsUpdated(IPlayer byplayer)
+    {
+        ModConfig.SaveConfig<HITConfig>(_capi, ClientConfig, configFileName); //saves the config file client-side
+        SendClientPacket(byplayer, ClientConfig); //updates it server-side via packet
+        return $"Config settings for {byplayer.PlayerName} successfully updated.";
     }
     #endregion
 
@@ -128,18 +124,18 @@ public class HITModSystem : ModSystem
                 .HandleWith((args) => { return OnToggleConfigSetting(args, true); }) //both sub-commands are handled by the same handler method
             .EndSub()
             .BeginSubCommand("set-favorites") //sets up a system that prefers specific slots above others instead of marching through the hotbar in order
-                .WithDescription("Sets up to 5 favorited hotbar slots for selective tool rendering [Default 1-5]")
+                .WithDescription("Sets up to 5 (optional) favorited hotbar slots for selective tool rendering")
                 .WithArgs(
                     parsers.OptionalIntRange("slot 1", 0, 9, -1),
                     parsers.OptionalIntRange("slot 2", 0, 9, -1),
                     parsers.OptionalIntRange("slot 3", 0, 9, -1),
                     parsers.OptionalIntRange("slot 4", 0, 9, -1),
                     parsers.OptionalIntRange("slot 5", 0, 9, -1))
-                .HandleWith(new OnCommandDelegate(OnSetFavoriteSlots)) //this one has its own handler method, args are automatically passed as the only parameter
+                .HandleWith(new OnCommandDelegate(OnSetFavoriteSlots)) //standalone method, args are automatically passed as the only parameter
             .EndSub()
             .BeginSubCommand("reset")
                 .WithDescription("Resets all rendering settings to their default values")
-                .HandleWith(new OnCommandDelegate(OnConfigReset))
+                .HandleWith(new OnCommandDelegate(OnConfigReset)) //standalone method, args are automatically passed as the only parameter
             .EndSub()
             .Validate();
     }
