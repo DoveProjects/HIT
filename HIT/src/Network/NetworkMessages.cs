@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ProtoBuf;
 
-namespace HIT;
+namespace Ele.HIT;
 
 public enum BackPackType //initializing a var to hold the variations of the backpack for later checking
 {
@@ -31,5 +31,11 @@ public class UpdatePlayerTools //sent from server -> client so the client's rend
 public class RequestToolsInfo //sent from client -> server when the server 'requests' rendering data from each client
 {
     public string PlayerUid = null!;
+    public string ConfigData = null!;
+}
+
+[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+public class ClientConfigReloaded //sent from client -> server whenever the configs are saved
+{
     public string ConfigData = null!;
 }

@@ -1,11 +1,13 @@
 using Vintagestory.API.Common;
 using Newtonsoft.Json;
-using IConfig;
 
-namespace HIT
+namespace Ele.Configuration
 {
     public class HITConfig : IModConfig
     {
+        [JsonIgnore]
+        public bool Enabled { get; set; } = true;
+
         public bool Forearm_Tools_Enabled { get; set; } = true; //Bool to enable/disable the rendering of forearm tools
         public bool Tools_On_Back_Enabled { get; set; } = true; //Bool to enable/disable the rendering of tools on the back 
         public bool Shields_Enabled { get; set; } = true; //Bool to enable/disable all shield rendering
@@ -14,6 +16,7 @@ namespace HIT
         public bool Favorited_Slots_Enabled { get; set; } = false; //Bool to enable/disable the favorited slots feature
 
         public int[] Favorited_Slots = new int[5] { 0, 1, 2, 3, 4 }; //Int array to determine favorited hotbar slots. Defaults to slots 1-5
+
 
         public HITConfig(ICoreAPI api, HITConfig previousConfig = null)
         {

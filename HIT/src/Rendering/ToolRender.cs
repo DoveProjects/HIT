@@ -8,7 +8,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace HIT;
+namespace Ele.HIT;
 
 enum CustomTransform
 {

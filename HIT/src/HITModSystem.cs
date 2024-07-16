@@ -4,23 +4,21 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Common.CommandAbbr;
 using Newtonsoft.Json;
-using IConfig;
+using Ele.Configuration;
 
 
-namespace HIT;
+namespace Ele.HIT;
 public class HITModSystem : ModSystem
 {
     public const int TotalSlots = 5;
     public const int ShieldSlotId = 4;
 
-    private const string configFileName = "harpers_immersive_tools.json";
-    private const string ChannelName = "harpers_tools_mod";
     private ICoreClientAPI _capi = null!;
     private ICoreServerAPI _sapi = null!;
 
     private readonly Dictionary<string, ToolRenderer> _rendererByPlayer = new();
     private readonly Dictionary<string, PlayerToolWatcher> _watcherByPlayer = new();
-    private static HITConfig ClientConfig;
+    public static HITConfig ClientConfig;
 
     internal IClientNetworkChannel ClientChannel = null!;
     internal static IServerNetworkChannel ServerChannel = null!;
@@ -43,13 +41,18 @@ public class HITModSystem : ModSystem
     public override void StartClientSide(ICoreClientAPI capi)
     {
         _capi = capi;
-        ClientConfig = ModConfig.ReadConfig<HITConfig>(capi, configFileName); //initialize the config client-side
+        ClientConfig = ModConfig.ReadConfig<HITConfig>(capi); //initialize the config client-side
+        if (capi.ModLoader.IsModEnabled("configlib"))
+        {
+            capi.Logger.Notification("[HIT] Initializing configlib support...");
+            _ = new ConfigLibCompat(capi);
+        }
         RegisterHITClientCommand(capi); //registers the core client-side command
 
         _capi.Event.PlayerEntitySpawn += EventOnPlayerEntitySpawn;
         _capi.Event.PlayerEntityDespawn += EventOnPlayerEntityDespawn;
         ClientChannel = _capi.Network
-            .RegisterChannel(ChannelName)
+            .RegisterChannel(ModConstants.mainChannel)
             .RegisterMessageType<RequestToolsInfo>()
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<UpdatePlayerTools>(HandleDataFromServer);
@@ -59,7 +62,7 @@ public class HITModSystem : ModSystem
     private void EventOnPlayerEntitySpawn(IClientPlayer byplayer)
     {
         _rendererByPlayer[byplayer.PlayerUID] = new ToolRenderer(_capi, byplayer); //first initializes a new ToolRenderer for the player
-        ClientConfig = ModConfig.LoadConfig<HITConfig>(_capi, configFileName); //then reads the client config and sends it in a packet to the server
+        ClientConfig = ModConfig.LoadConfig<HITConfig>(_capi); //then reads the client config and sends it in a packet to the server
         SendClientPacket(byplayer, ClientConfig);
     }
 
@@ -96,7 +99,7 @@ public class HITModSystem : ModSystem
     //Returns a 'success' string for use in commands
     private string PlayerConfigsUpdated(IPlayer byplayer)
     {
-        ModConfig.SaveConfig<HITConfig>(_capi, ClientConfig, configFileName); //saves the config file client-side
+        ModConfig.WriteConfig<HITConfig>(_capi, ClientConfig); //saves the config file client-side
         SendClientPacket(byplayer, ClientConfig); //updates it server-side via packet
         return $"Config settings for {byplayer.PlayerName} successfully updated.";
     }
@@ -203,7 +206,7 @@ public class HITModSystem : ModSystem
         var player = args.Caller.Player;
         if (ClientConfig != null)
         {
-            ClientConfig = new HITConfig(_capi, null);
+            ClientConfig = new HITConfig(_capi);
             PlayerConfigsUpdated(player);
             return TextCommandResult.Success($"Config settings reset to default.");
         }
@@ -222,7 +225,7 @@ public class HITModSystem : ModSystem
         _sapi.Event.PlayerNowPlaying += EventOnPlayerNowPlaying;
         _sapi.Event.PlayerDisconnect += EventOnPlayerDisconnect;
         ServerChannel = _sapi.Network
-            .RegisterChannel(ChannelName)
+            .RegisterChannel(ModConstants.mainChannel)
             .RegisterMessageType<RequestToolsInfo>()
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<RequestToolsInfo>(HandleClientDataRequest);

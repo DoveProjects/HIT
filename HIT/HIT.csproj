@@ -47,12 +47,29 @@
       <HintPath>$(VINTAGE_STORY)/Lib/Microsoft.Data.Sqlite.dll</HintPath>
       <Private>False</Private>
     </Reference>
+<!-- Third-party mod dependencies -->
+	<Reference Include="configlib">
+		<HintPath>..\configlib.dll</HintPath>
+		<Private>false</Private>
+	</Reference>
+	<Reference Include="VSImGui">
+		<HintPath>..\VSImGui.dll</HintPath>
+		<Private>false</Private>
+	</Reference>
+	<Reference Include="ImGui.NET">
+		<HintPath>..\VImGui.NET.dll</HintPath>
+		<Private>false</Private>
+	</Reference>
   </ItemGroup>
 
 <ItemGroup>
   <Content Include="assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
+  <Compile Remove="assets\hit\config\**" />
+  <Content Remove="assets\hit\config\**" />
+  <EmbeddedResource Remove="assets\hit\config\**" />
+  <None Remove="assets\hit\config\**" />
   <Content Include="modinfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>

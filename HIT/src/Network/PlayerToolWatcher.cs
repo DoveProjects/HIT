@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;
+using Ele.Configuration;
 
-namespace HIT;
+namespace Ele.HIT;
 
 public class PlayerToolWatcher
 {

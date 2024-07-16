@@ -1,15 +1,7 @@
-using Newtonsoft.Json;
-
-namespace IConfig
+﻿namespace Ele.Configuration
 {
-    public interface IModConfig
+    public interface IModConfig 
     {
-        /*[JsonIgnore]
-        string ConfigName { get; }
-
-        [JsonIgnore]
-        EnumConfigType ConfigType { get; }
-
-        ConfigSetting[] GetConfigSettings();*/
+        bool Enabled { get; set; }
     }
 }
