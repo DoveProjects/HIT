@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using static Ele.HIT.ModConstants;
+using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -8,7 +9,7 @@ using Ele.Configuration;
 
 
 namespace Ele.HIT;
-public class HITModSystem : ModSystem
+public class ModMain : ModSystem
 {
     public const int TotalSlots = 5;
     public const int ShieldSlotId = 4;
@@ -18,7 +19,7 @@ public class HITModSystem : ModSystem
 
     private readonly Dictionary<string, ToolRenderer> _rendererByPlayer = new();
     private readonly Dictionary<string, PlayerToolWatcher> _watcherByPlayer = new();
-    public static HITConfig ClientConfig;
+    public static ModConfig ClientConfig;
 
     internal IClientNetworkChannel ClientChannel = null!;
     internal static IServerNetworkChannel ServerChannel = null!;
@@ -41,7 +42,7 @@ public class HITModSystem : ModSystem
     public override void StartClientSide(ICoreClientAPI capi)
     {
         _capi = capi;
-        ClientConfig = ModConfig.ReadConfig<HITConfig>(capi); //initialize the config client-side
+        ClientConfig = ConfigHelper.ReadConfig<ModConfig>(capi); //initialize the config client-side
         if (capi.ModLoader.IsModEnabled("configlib"))
         {
             capi.Logger.Notification("[HIT] Initializing configlib support...");
@@ -52,7 +53,7 @@ public class HITModSystem : ModSystem
         _capi.Event.PlayerEntitySpawn += EventOnPlayerEntitySpawn;
         _capi.Event.PlayerEntityDespawn += EventOnPlayerEntityDespawn;
         ClientChannel = _capi.Network
-            .RegisterChannel(ModConstants.mainChannel)
+            .RegisterChannel(mainChannel)
             .RegisterMessageType<RequestToolsInfo>()
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<UpdatePlayerTools>(HandleDataFromServer);
@@ -62,7 +63,7 @@ public class HITModSystem : ModSystem
     private void EventOnPlayerEntitySpawn(IClientPlayer byplayer)
     {
         _rendererByPlayer[byplayer.PlayerUID] = new ToolRenderer(_capi, byplayer); //first initializes a new ToolRenderer for the player
-        ClientConfig = ModConfig.LoadConfig<HITConfig>(_capi); //then reads the client config and sends it in a packet to the server
+        ClientConfig = ConfigHelper.LoadConfig<ModConfig>(_capi); //then reads the client config and sends it in a packet to the server
         SendClientPacket(byplayer, ClientConfig);
     }
 
@@ -86,7 +87,7 @@ public class HITModSystem : ModSystem
     }
 
     //Sends player data and client-side configs to the server as a serialized packet
-    private void SendClientPacket(IPlayer byplayer, HITConfig clientConfig)
+    private void SendClientPacket(IPlayer byplayer, ModConfig clientConfig)
     {
         ClientChannel.SendPacket(new RequestToolsInfo()
         {
@@ -99,7 +100,7 @@ public class HITModSystem : ModSystem
     //Returns a 'success' string for use in commands
     private string PlayerConfigsUpdated(IPlayer byplayer)
     {
-        ModConfig.WriteConfig<HITConfig>(_capi, ClientConfig); //saves the config file client-side
+        ConfigHelper.WriteConfig<ModConfig>(_capi, ClientConfig); //saves the config file client-side
         SendClientPacket(byplayer, ClientConfig); //updates it server-side via packet
         return $"Config settings for {byplayer.PlayerName} successfully updated.";
     }
@@ -206,7 +207,7 @@ public class HITModSystem : ModSystem
         var player = args.Caller.Player;
         if (ClientConfig != null)
         {
-            ClientConfig = new HITConfig(_capi);
+            ClientConfig = new ModConfig(_capi);
             PlayerConfigsUpdated(player);
             return TextCommandResult.Success($"Config settings reset to default.");
         }
@@ -225,7 +226,7 @@ public class HITModSystem : ModSystem
         _sapi.Event.PlayerNowPlaying += EventOnPlayerNowPlaying;
         _sapi.Event.PlayerDisconnect += EventOnPlayerDisconnect;
         ServerChannel = _sapi.Network
-            .RegisterChannel(ModConstants.mainChannel)
+            .RegisterChannel(mainChannel)
             .RegisterMessageType<RequestToolsInfo>()
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<RequestToolsInfo>(HandleClientDataRequest);
@@ -252,7 +253,7 @@ public class HITModSystem : ModSystem
     {
         if (!_watcherByPlayer.TryGetValue(packet.PlayerUid, out var watcher)) return; //if the player does not have a watcher, skip
 
-        HITConfig configPacket = JsonConvert.DeserializeObject<HITConfig>(packet.ConfigData); //deserialize the config object from the client's data packet
+        ModConfig configPacket = JsonConvert.DeserializeObject<ModConfig>(packet.ConfigData); //deserialize the config object from the client's data packet
         if (watcher.ClientConfig != configPacket) //this check probably isn't necessary, but oh well, it isn't hurting anything
         {
             watcher.ClientConfig = configPacket;

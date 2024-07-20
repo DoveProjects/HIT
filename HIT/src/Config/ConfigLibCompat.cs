@@ -1,4 +1,5 @@
-﻿using System;
+﻿using static Ele.HIT.ModConstants;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using Vintagestory.API.Config;
@@ -15,24 +16,23 @@ namespace Ele.Configuration
     public class ConfigLibCompat
     {
         public ConfigLibModSystem ConfigLib { get; set; }
-        private const string settingPrefix = $"{ModConstants.modDomain}:Config.Setting.";
+        private const string settingPrefix = $"{MOD_ID}:Config.Setting.";
 
         public ConfigLibCompat(ICoreAPI api)
         {
             ConfigLib = api.ModLoader.GetModSystem<ConfigLibModSystem>();
-            api.Logger.Notification("[HIT] ConfigLibModSystem has be registered:", ConfigLib.ToString());
-            ConfigLib.RegisterCustomConfig(ModConstants.modName, (id, buttons) => EditConfig(id, buttons, api));
+            ConfigLib.RegisterCustomConfig(MOD_NAME, (id, buttons) => EditConfig(id, buttons, api));
         }
 
         private void EditConfig(string id, ControlButtons buttons, ICoreAPI api)
         {
-            if (buttons.Save) HITModSystem.ClientConfig = ModConfig.UpdateConfig(api, HITModSystem.ClientConfig);
-            if (buttons.Restore) HITModSystem.ClientConfig = ModConfig.ReadConfig<HITConfig>(api, ModConfig.GetConfigPath(api));
-            if (buttons.Defaults) HITModSystem.ClientConfig = new(api);
-            Edit(api, HITModSystem.ClientConfig, id);
+            if (buttons.Save) ModMain.ClientConfig = ConfigHelper.UpdateConfig(api, ModMain.ClientConfig);
+            if (buttons.Restore) ModMain.ClientConfig = ConfigHelper.ReadConfig<ModConfig>(api, ConfigHelper.GetConfigPath(api));
+            if (buttons.Defaults) ModMain.ClientConfig = new(api);
+            Edit(api, ModMain.ClientConfig, id);
         }
 
-        private void Edit(ICoreAPI api, HITConfig config, string id)
+        private void Edit(ICoreAPI api, ModConfig config, string id)
         {
             ImGui.TextWrapped($"{Lang.Get("mod-title")} Settings");
 

@@ -1,101 +1,33 @@
-using System;
-using System.IO;
 using Vintagestory.API.Common;
-using Ele.HIT;
+using Newtonsoft.Json;
 
 namespace Ele.Configuration
 {
-    //Courtesy of https://github.com/Craluminum-Mods/ && https://github.com/Chronolegionnaire/
-    public static class ModConfig
+    public class ModConfig : IModConfig
     {
-        /// <summary>
-        ///     Returns config file path - ModConfig/ModName.json by default
-        ///     Optional configName param for nesting granular config files within a config folder
-        /// </summary>
-        public static string GetConfigPath(ICoreAPI api, string configName = null)
-        {
-            return configName == null ?
-                $"{ModConstants.modName}.json" :
-                Path.Combine(api.GetOrCreateDataPath(ModConstants.modName), $"{configName}.json");
-        }
+        [JsonIgnore]
+        public bool Enabled { get; set; } = true;
 
-        /// <summary>
-        ///     Returns a config class read from a json config file.
-        ///     Will return an existing file or generate and return a new one if none exists.
-        /// </summary>
-        public static T ReadConfig<T>(ICoreAPI api, string jsonPath = null) where T : class, IModConfig
+        public bool Forearm_Tools_Enabled { get; set; } = true; //Bool to enable/disable the rendering of forearm tools
+        public bool Tools_On_Back_Enabled { get; set; } = true; //Bool to enable/disable the rendering of tools on the back 
+        public bool Shields_Enabled { get; set; } = true; //Bool to enable/disable all shield rendering
+
+
+        public bool Favorited_Slots_Enabled { get; set; } = false; //Bool to enable/disable the favorited slots feature
+
+        public int[] Favorited_Slots = new int[5] { 0, 1, 2, 3, 4 }; //Int array to determine favorited hotbar slots. Defaults to slots 1-5
+
+
+        public ModConfig(ICoreAPI api, ModConfig previousConfig = null)
         {
-            T config;
-            try
+            if (previousConfig != null)
             {
-                config = LoadConfig<T>(api, jsonPath);
-
-                if (config == null)
-                {
-                    GenerateConfig<T>(api, jsonPath);
-                    config = LoadConfig<T>(api, jsonPath);
-                }
-                else
-                {
-                    GenerateConfig(api, jsonPath, config);
-                }
+                Forearm_Tools_Enabled = previousConfig.Forearm_Tools_Enabled;
+                Tools_On_Back_Enabled = previousConfig.Tools_On_Back_Enabled;
+                Shields_Enabled = previousConfig.Shields_Enabled;
+                Favorited_Slots_Enabled = previousConfig.Favorited_Slots_Enabled;
+                Favorited_Slots = previousConfig.Favorited_Slots;
             }
-            catch
-            {
-                GenerateConfig<T>(api, jsonPath);
-                config = LoadConfig<T>(api, jsonPath);
-            }
-            return config;
-        }
-
-        /// <summary>
-        ///     Writes to a config file and returns the updated version.
-        ///     Will update an existing file or generate and update a new one if none exists.
-        /// </summary>
-        public static T UpdateConfig<T>(ICoreAPI api, T newConfig, string jsonPath = null) where T : class, IModConfig
-        {
-            T config = ReadConfig<T>(api, jsonPath);
-            try
-            {
-                if (config == newConfig)
-                {
-                    return newConfig;
-                }
-                else
-                {
-                    WriteConfig<T>(api, newConfig, jsonPath);
-                    config = LoadConfig<T>(api, jsonPath);
-                }
-            }
-            catch
-            {
-                GenerateConfig<T>(api, jsonPath);
-                config = LoadConfig<T>(api, jsonPath);
-            }
-            return config;
-        }
-
-        public static void WriteConfig<T>(ICoreAPI api, T config, string jsonPath = null) where T : IModConfig
-        {
-            string configPath = GetConfigPath(api, jsonPath);
-            api.StoreModConfig(config, configPath);
-        }
-
-        public static T LoadConfig<T>(ICoreAPI api, string jsonPath = null) where T : IModConfig
-        {
-            string configPath = GetConfigPath(api, jsonPath);
-            return api.LoadModConfig<T>(configPath);
-        }
-
-        private static void GenerateConfig<T>(ICoreAPI api, string jsonPath = null, T previousConfig = null) where T : class, IModConfig
-        {
-            string configPath = GetConfigPath(api, jsonPath);
-            api.StoreModConfig(CloneConfig(api, previousConfig), configPath);
-        }
-
-        private static T CloneConfig<T>(ICoreAPI api, T config = null) where T : class, IModConfig
-        {
-            return (T)Activator.CreateInstance(typeof(T), new object[] { api, config });
         }
     }
 }

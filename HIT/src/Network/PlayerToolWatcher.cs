@@ -11,11 +11,11 @@ namespace Ele.HIT;
 public class PlayerToolWatcher
 {
     private readonly IPlayer _player; //player
-    private readonly ItemSlot[] _bodyArray = new ItemSlot[HITModSystem.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
+    private readonly ItemSlot[] _bodyArray = new ItemSlot[ModMain.TotalSlots]; //body array that's used to check if a "slot" (sheath) is filled or not
     private readonly List<IInventory> _inventories; //declared here for use in combining inventories for XSkills Compat (adds extra inv)
     private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
     private BackPackType _backPackType;
-    public HITConfig ClientConfig;
+    public ModConfig ClientConfig;
     public PlayerToolWatcher(IPlayer player)
     {
         _player = player;
@@ -94,7 +94,7 @@ public class PlayerToolWatcher
                 UpdateInventory(inventory);
             }
         }
-        HITModSystem.ServerChannel.BroadcastPacket(GenerateUpdateMessage());//Broadcasts every time inventory shifts
+        ModMain.ServerChannel.BroadcastPacket(GenerateUpdateMessage());//Broadcasts every time inventory shifts
     }
 
     private void UpdateInventory(IInventory inventory)
