@@ -16,7 +16,9 @@ enum CustomTransform
     ShieldOnBackpack,
     ShieldOnHunterPack,
     HammerLeft,
-    HammerRight
+    HammerRight,
+    GunLeft,
+    GunRight
 }
 
 public class ToolRenderer : IRenderer
@@ -68,7 +70,7 @@ public class ToolRenderer : IRenderer
     };
 
     //these are alternative transforms for special cases. You can also modify the original transforms for small things as used later for shield offset, but it's clunky.
-    private static Dictionary<CustomTransform, ModelTransform> CustomTransforms = new()
+    private Dictionary<CustomTransform, ModelTransform> CustomTransforms = new()
     {
         [CustomTransform.ShieldDefault] = new()
         { //shield directly on back
@@ -101,6 +103,18 @@ public class ToolRenderer : IRenderer
             Translation = new Vec3f(-0.43f, -0.68f, -0.50f), //the one at 2 o clock previously -0.5
             Rotation = new Vec3f(-45, 180, -90),
             Scale = 0.95f
+        },
+        [CustomTransform.GunLeft] = new() //hammer on back, diagonal from right to left
+        {
+            Translation = new Vec3f(0.03f, 0.1f, -0.50f), //the one at 10 o clock
+            Rotation = new Vec3f(-45, 0, 0),
+            Scale = 0.95f
+        },
+        [CustomTransform.GunRight] = new() //hammer on back, diagonal from right to left
+        {
+            Translation = new Vec3f(-0.93f, 0.1f, -0.50f), //the one at 2 o clock previously -0.5
+            Rotation = new Vec3f(45, 180, 0),
+            Scale = 0.95f
         }
     };
 
@@ -128,6 +142,13 @@ public class ToolRenderer : IRenderer
                 transform = slotId == 2
                     ? CustomTransforms[CustomTransform.HammerLeft]
                     : CustomTransforms[CustomTransform.HammerRight];
+                return true;
+            }
+            if (code.Contains("arquebus") || code.Contains("pistol") || code.Contains("carbine") || code.Contains("musket"))
+            {
+                transform = slotId == 2
+                    ? CustomTransforms[CustomTransform.GunLeft]
+                    : CustomTransforms[CustomTransform.GunRight];
                 return true;
             }
 
