@@ -18,7 +18,9 @@ enum CustomTransform
     HammerLeft,
     HammerRight,
     GunLeft,
-    GunRight
+    GunRight,
+    XbowLeft,
+    XbowRight
 }
 
 public class ToolRenderer : IRenderer
@@ -74,7 +76,7 @@ public class ToolRenderer : IRenderer
     {
         [CustomTransform.ShieldDefault] = new()
         { //shield directly on back
-            Translation = new Vec3f(-0.2f, -0.22f, -0.96f), //x is front and back z is left and right
+            Translation = new Vec3f(-0.16f, -0.22f, -0.96f), //x is front and back z is left and right
             Rotation = new Vec3f(0, 90, 0), //x is roll y is yaw z is pitch
             Scale = 0.9f
         },
@@ -94,27 +96,39 @@ public class ToolRenderer : IRenderer
         },
         [CustomTransform.HammerLeft] = new()  //hammer on back, diagonal from left to right
         {
-            Translation = new Vec3f(-0.41f, -0.68f, -0.50f), //the one at 10 o clock
+            Translation = new Vec3f(-0.46f, -0.65f, -0.51f), //the one at 10 o clock
             Rotation = new Vec3f(45, 0, -90),
             Scale = 0.95f
         },
         [CustomTransform.HammerRight] = new() //hammer on back, diagonal from right to left
         {
-            Translation = new Vec3f(-0.43f, -0.68f, -0.50f), //the one at 2 o clock previously -0.5
+            Translation = new Vec3f(-0.48f, -0.65f, -0.51f), //the one at 2 o clock previously -0.5
             Rotation = new Vec3f(-45, 180, -90),
             Scale = 0.95f
         },
-        [CustomTransform.GunLeft] = new() //hammer on back, diagonal from right to left
+        [CustomTransform.GunLeft] = new() //gun on back, diagonal from left to right
         {
-            Translation = new Vec3f(0.03f, 0.1f, -0.50f), //the one at 10 o clock
+            Translation = new Vec3f(0f, 0.1f, -0.57f), //the one at 10 o clock
             Rotation = new Vec3f(-45, 0, 0),
-            Scale = 0.95f
+            Scale = 0.8f
         },
-        [CustomTransform.GunRight] = new() //hammer on back, diagonal from right to left
+        [CustomTransform.GunRight] = new() //gun on back, diagonal from right to left
         {
-            Translation = new Vec3f(-0.93f, 0.1f, -0.50f), //the one at 2 o clock previously -0.5
+            Translation = new Vec3f(-0.96f, 0.1f, -0.57f), //the one at 2 o clock previously -0.5
             Rotation = new Vec3f(45, 180, 0),
-            Scale = 0.95f
+            Scale = 0.8f
+        },
+        [CustomTransform.XbowLeft] = new() //crossbow on back, diagonal from left to right
+        {
+            Translation = new Vec3f(0.04f, -0.99f, -0.2f), //the one at 10 o clock
+            Rotation = new Vec3f(-45, 0, -90),
+            Scale = 0.75f
+        },
+        [CustomTransform.XbowRight] = new() //crossbow on back, diagonal from right to left
+        {
+            Translation = new Vec3f(0f, -0.3f, -0.3f), //the one at 2 o clock previously -0.5
+            Rotation = new Vec3f(45, 180, 90),
+            Scale = 0.75f
         }
     };
 
@@ -151,7 +165,13 @@ public class ToolRenderer : IRenderer
                     : CustomTransforms[CustomTransform.GunRight];
                 return true;
             }
-
+            if (code.Contains("crossbow"))
+            {
+                transform = slotId == 2
+                    ? CustomTransforms[CustomTransform.XbowLeft]
+                    : CustomTransforms[CustomTransform.XbowRight];
+                return true;
+            }
             if (code.Contains("shield") && slotId == ModMain.ShieldSlotId)
             {
                 transform = CustomTransforms[_shieldTransform];
@@ -195,7 +215,7 @@ public class ToolRenderer : IRenderer
                 _shieldTransform = CustomTransform.ShieldDefault;
                 if (_playerTools[ModMain.ShieldSlotId] != null)
                 {
-                    _backToolsOffset = 0.075f;
+                    _backToolsOffset = 0.15f;
                 }
                 break;
         }
