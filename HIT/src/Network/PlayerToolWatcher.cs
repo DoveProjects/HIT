@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;
-using Ele.Configuration;
+using HarmonyLib;
 
-namespace Ele.HIT;
+namespace Elephant.HIT;
 
 public class PlayerToolWatcher
 {
@@ -15,7 +15,8 @@ public class PlayerToolWatcher
     private readonly List<IInventory> _inventories; //declared here for use in combining inventories for XSkills Compat (adds extra inv)
     private readonly IInventory _backpacks; //used for updates on if the backpack changed (since hotbar.SlotModified only returns for the 0-9 hotbar)
     private BackPackType _backPackType;
-    public ModConfig ClientConfig;
+    public ClientConfig ClientConfig;
+
     public PlayerToolWatcher(IPlayer player)
     {
         _player = player;
@@ -47,7 +48,14 @@ public class PlayerToolWatcher
         {
             _backPackType = BackPackType.Hunter;
         }
-
+        /*else if (_backpacks.Any(slot => slot is ItemSlotBackpack && slot.Itemstack?.Collectible?.Code?.Domain == "vichnybackpack" && (slot.Itemstack?.Collectible?.Code?.Path == "linenpack" || slot.Itemstack?.Collectible?.Code?.Path == "hunterpack")))
+        {
+            _backPackType = BackPackType.EternalPack;
+        }
+        else if (_backpacks.Any(slot => slot is ItemSlotBackpack && slot.Itemstack?.Collectible?.Code?.Domain == "vichnybackpack" && slot.Itemstack?.Collectible?.Code?.Path == "backpack"))
+        {
+            _backPackType = BackPackType.EternalBackPack;
+        }*/
     }
     private void BackpacksOnSlotModified(int slotId) //when backpack slots (the four to the right of the hotbar) are filled/emptied
     {
@@ -87,18 +95,17 @@ public class PlayerToolWatcher
     public void UpdateInventories(int slotId)
     {
         Array.Clear(_bodyArray, 0, _bodyArray.Length); //clears bodyArray to not return false positives
-        if (ClientConfig != null) //we do a preliminary check for the client config data before updating, as initialization might lag behind slightly on login
+        if (ClientConfig == null) return;              //we do a preliminary check for the client config data before updating, as initialization might lag behind slightly on login
+        foreach (var inventory in _inventories)        //updates inventory + extraInvs (e.g. XSkills)
         {
-            foreach (var inventory in _inventories) //updates inventory + extraInvs (e.g. XSkills)
-            {
-                UpdateInventory(inventory);
-            }
+            UpdateInventory(inventory);
         }
-        ModMain.ServerChannel.BroadcastPacket(GenerateUpdateMessage());//Broadcasts every time inventory shifts
+        ModMain.ServerChannel.BroadcastPacket(GenerateUpdateMessage()); //Broadcasts every time inventory shifts
     }
 
     private void UpdateInventory(IInventory inventory)
     {
+        if (ClientConfig == null) return;
         foreach (ItemSlot itemSlot in inventory) //loop through inv
         {
             if (itemSlot.Itemstack == null) continue; //if blank slot, skip

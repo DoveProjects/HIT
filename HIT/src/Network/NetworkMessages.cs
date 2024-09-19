@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using ProtoBuf;
 
-namespace Ele.HIT;
+namespace Elephant.HIT;
 
 public enum BackPackType //initializing a var to hold the variations of the backpack for later checking
 {
     None,
     Leather,
-    Hunter
+    Hunter,
+    EternalPack,
+    EternalBackPack
 }
 
 //these are network messages that are sent back and forth between the client and server, using the ProtoBuf library
@@ -35,7 +37,7 @@ public class RequestToolsInfo //sent from client -> server when the server 'requ
 }
 
 [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-public class ClientConfigReloaded //sent from client -> server whenever the configs are saved
+public class ClientConfigUpdated
 {
     public string ConfigData = null!;
 }
