@@ -1,12 +1,11 @@
 using static Elephant.HIT.ModConstants;
 using System;
+using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Client;
 using Vintagestory.API.Server;
-using Vintagestory.API.Common.CommandAbbr;
 using Elephant.Extensions;
-using Vintagestory.GameContent;
-using System.Collections.Generic;
+using Vintagestory.API.Common.CommandAbbr;
 
 namespace Elephant.HIT;
 
@@ -32,15 +31,31 @@ public class InputManager
         {0, 9}
     };
 
-    public InputManager(ICoreAPI api)
+    /// <summary>
+    ///     Server-Side Constructor
+    /// </summary>
+    public InputManager(ICoreServerAPI api, bool cmmdEnabled = true)
     {
-        _capi = api as ICoreClientAPI;
-        _sapi = api as ICoreServerAPI;
+        _sapi = api;
+        if (!cmmdEnabled) return;
+        RegisterParentCommand(api);
+    }
 
-        RegisterParentCommand(_capi);
-
-        //_capi.Input.RegisterHotKey("placeholder", "This is a placeholder hotkey.", GlKeys.Period, HotkeyType.DevTool);
-        //_capi.Input.SetHotKeyHandler("placeholder", combo => false);
+    /// <summary>
+    ///     Client-Side Constructor
+    /// </summary>
+    public InputManager(ICoreClientAPI api, bool cmmdEnabled = false, bool htkyEnabled = false)
+    {
+        _capi = api;
+        if (cmmdEnabled)
+        {
+            RegisterParentCommand(api);
+        }
+        if (htkyEnabled)
+        {
+            _capi.Input.RegisterHotKey("placeholder", "This is a placeholder hotkey.", GlKeys.Period, HotkeyType.DevTool);
+            _capi.Input.SetHotKeyHandler("placeholder", combo => false);
+        }
     }
 
     public static bool IsKeyComboActive(string key)
@@ -55,7 +70,7 @@ public class InputManager
     /// </summary>
     private void RegisterParentCommand(ICoreAPI api)
     {
-        api = api.GetSidedAPI();
+        //api = api.GetSidedAPI();
         CommandArgumentParsers parsers = api.ChatCommands.Parsers;
 
         api.ChatCommands.Create($"{MOD_ID}")
