@@ -75,4 +75,8 @@
   </Content>
 </ItemGroup>
 
+<ItemGroup>
+  <PackageReference Include="ElephantAugments_VS" Version="1.0.8" />
+</ItemGroup>
+
 </Project>

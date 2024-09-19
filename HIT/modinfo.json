@@ -6,8 +6,8 @@
     "authors": [
         "Dov3, Rhoun, Aera"
     ],
-    "description": "H.I.T. Renders tools / shields / weapons on your player, now with advanced shields and MULTIPLAYER!!!",
-    "version": "2.1.2",
+    "description": "H.I.T. Renders tools, shields, and weapons from the hotbar onto the player's back.",
+    "version": "2.2.0",
     "dependencies": {
         "game": ""
     }
