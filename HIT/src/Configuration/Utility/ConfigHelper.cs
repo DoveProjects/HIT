@@ -4,6 +4,8 @@ using System.Linq;
 using Vintagestory.API.Common;
 using System.Collections.Generic;
 using Elephant.HIT;
+using Vintagestory.API.Client;
+using Vintagestory.API.Server;
 
 namespace Elephant.Configuration
 {
@@ -23,11 +25,13 @@ namespace Elephant.Configuration
                         dict.Add(arg.Name, universal);
                         break;
                     case EnumAppSide.Client:
+                        if (!(api is ICoreClientAPI)) break;
                         var client = ReadConfig<ClientConfig>(api, arg);
                         client.Info = arg;
                         dict.Add(arg.Name, client);
                         break;
                     case EnumAppSide.Server:
+                        if (!(api is ICoreServerAPI)) break;
                         var properties = ReadConfig<ServerProperties>(api, arg);
                         properties.Info = arg;
                         dict.Add(arg.Name, properties);

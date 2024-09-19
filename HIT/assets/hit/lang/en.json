@@ -1,8 +1,13 @@
 {  
-    "mod-title": "Harper's Immersive Tools",
-    "Config.Setting.Forearm_Tools_Enabled": "Enable Forearm Tools",
-    "Config.Setting.Tools_On_Back_Enabled": "Enable Tools On Back",
-    "Config.Setting.Shields_Enabled": "Enable Shields",
-    "Config.Setting.Favorited_Slots_Enabled": "Enable Favorited Slots",
-    "Config.Setting.Favorited_Slots": "Favorited Slots Array"
+    "Mod-Title": "Harper's Immersive Tools",
+
+    "Config-Title.Synced": "Core Settings",
+	"Config-Title.Client": "Client Settings",
+	"Config-Title.Server": "Server Properties",
+
+    "Config-Setting.Forearm_Tools_Enabled": "Enable Forearm Tools",
+    "Config-Setting.Tools_On_Back_Enabled": "Enable Tools On Back",
+    "Config-Setting.Shields_Enabled": "Enable Shields",
+    "Config-Setting.Favorited_Slots_Enabled": "Enable Favorited Slots",
+    "Config-Setting.Favorited_Slots": "Favorited Slots Array"
 }
