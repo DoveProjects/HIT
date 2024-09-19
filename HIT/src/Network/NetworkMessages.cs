@@ -29,12 +29,12 @@ public class UpdatePlayerTools //sent from server -> client so the client's rend
     public Dictionary<int, SlotData> RenderedTools = null!;
 }
 
-[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+/*[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 public class RequestToolsInfo //sent from client -> server when the server 'requests' rendering data from each client
 {
     public string PlayerUid = null!;
     public string ConfigData = null!;
-}
+}*/
 
 [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 public class ClientConfigUpdated

@@ -12,6 +12,7 @@ using Elephant.Extensions;
 using Newtonsoft.Json;
 using ProtoBuf;
 using Vintagestory.API.Util;
+using System.Net.Sockets;
 
 namespace Elephant.HIT;
 
@@ -45,7 +46,6 @@ public class ConfigManager : ModSystem
         {
             _ = new ConfigLibCompat(api);
         }
-        //_ = new InputManager(api);
     }
 
     public static UniversalConfig UniversalConfig
@@ -59,7 +59,7 @@ public class ConfigManager : ModSystem
         set
         {
             activeSync = true;
-            if (value.Info == null) value.Info = ConfigInfo.FirstOrDefault(e => e.Side == EnumAppSide.Universal);
+            value.Info ??= ConfigInfo.FirstOrDefault(e => e.Side == EnumAppSide.Universal);
             ConfigsByName[value.Info.Name] = ConfigHelper.UpdateConfig<UniversalConfig>(_api, value);
             ((UniversalConfig)ConfigsByName[value.Info.Name]).Info = value.Info;
         }
@@ -75,7 +75,7 @@ public class ConfigManager : ModSystem
         }
         set
         {
-            if (value.Info == null) value.Info = ConfigInfo.FirstOrDefault(e => e.Side == EnumAppSide.Client);
+            value.Info ??= ConfigInfo.FirstOrDefault(e => e.Side == EnumAppSide.Client);
             ConfigsByName[value.Info.Name] = ConfigHelper.UpdateConfig<ClientConfig>(_api, value);
             ((ClientConfig)ConfigsByName[value.Info.Name]).Info = value.Info;
         }
@@ -91,7 +91,7 @@ public class ConfigManager : ModSystem
         }
         set
         {
-            if (value.Info == null) value.Info = ConfigInfo.FirstOrDefault(e => e.Side == EnumAppSide.Server);
+            value.Info ??= ConfigInfo.FirstOrDefault(e => e.Side == EnumAppSide.Server);
             ConfigsByName[value.Info.Name] = ConfigHelper.UpdateConfig<ServerProperties>(_api, value);
             ((ServerProperties)ConfigsByName[value.Info.Name]).Info = value.Info;
         }
@@ -107,7 +107,9 @@ public class ConfigManager : ModSystem
              .RegisterMessageType<UniversalConfig>()
              .SetMessageHandler<UniversalConfig>(ReceiveConfigFromServer);
         capi.Event.RegisterEventBusListener(SendClientConfig, filterByEventName: EventIDs.Client_Send_Config);
-        capi.Event.RegisterEventBusListener(SendAdminConfig, filterByEventName: EventIDs.Admin_Send_Config); 
+        capi.Event.RegisterEventBusListener(SendAdminConfig, filterByEventName: EventIDs.Admin_Send_Config);
+
+        _ = new InputManager(capi, true, false);
     }
 
     private static void SendAdminConfig(string eventname, ref EnumHandling handling, IAttribute data)
@@ -118,8 +120,7 @@ public class ConfigManager : ModSystem
 
     private static void SendClientConfig(string eventname, ref EnumHandling handling, IAttribute data)
     {
-        _api.Log("Client config updated, sending to server...");
-        _clientChannel.SendPacket(new ClientConfigUpdated()
+        ModMain.ClientChannel.SendPacket(new ClientConfigUpdated()
         {
             ConfigData = JsonConvert.SerializeObject(ClientConfig)
         });
@@ -127,7 +128,6 @@ public class ConfigManager : ModSystem
 
     private static void ReceiveConfigFromServer(UniversalConfig packet)
     {
-        _api.Log("Receiving config from server, updating local file...");
         if (ConfigsByName.TryGetValue(packet.Info.Name, out var config))
         {
             UniversalConfig = packet;
@@ -141,10 +141,8 @@ public class ConfigManager : ModSystem
     public override void StartServerSide(ICoreServerAPI sapi)
     {
         _serverChannel = sapi.Network.RegisterChannel(NETWORK_CHANNEL_CONFIG)
-            .RegisterMessageType<ClientConfigUpdated>()
             .RegisterMessageType<UniversalConfig>()
-            .SetMessageHandler<UniversalConfig>(ReceiveConfigFromAdmin)
-            .SetMessageHandler<ClientConfigUpdated>(ReceiveConfigFromClient);
+            .SetMessageHandler<UniversalConfig>(ReceiveConfigFromAdmin);
 
         if (activeSync) sapi.Event.PlayerJoin += SendConfigFromServer;
         sapi.Event.RegisterEventBusListener(SendConfigToAllPlayers, filterByEventName: EventIDs.Config_Reloaded);
@@ -163,15 +161,6 @@ public class ConfigManager : ModSystem
         }
     }
 
-    private static void ReceiveConfigFromClient(IServerPlayer fromplayer, ClientConfigUpdated packet)
-    {
-        ModMain.ClientChannel.SendPacket(new RequestToolsInfo()
-        {
-            PlayerUid = fromplayer.PlayerUID,
-            ConfigData = packet.ConfigData
-        });
-    }
-
     private static void SendConfigToAllPlayers(string eventname, ref EnumHandling handling, IAttribute data)
     {
         _api.Log("Syncing configs across all server players...");
@@ -185,7 +174,6 @@ public class ConfigManager : ModSystem
 
     private static void SendConfigFromServer(IServerPlayer toPlayer)
     {
-        _api.Log($"Sending config to player: {toPlayer.PlayerName}");
         _serverChannel?.SendPacket(UniversalConfig, toPlayer);
     }
 }

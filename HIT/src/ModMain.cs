@@ -42,7 +42,7 @@ public class ModMain : ModSystem
         _capi.Event.PlayerEntityDespawn += EventOnPlayerEntityDespawn;
         ClientChannel = _capi.Network
             .RegisterChannel(NETWORK_CHANNEL_MAIN)
-            .RegisterMessageType<RequestToolsInfo>()
+            .RegisterMessageType<ClientConfigUpdated>()
             .RegisterMessageType<UpdatePlayerTools>()
             .SetMessageHandler<UpdatePlayerTools>(HandleDataFromServer);
     }
@@ -72,16 +72,6 @@ public class ModMain : ModSystem
         }
     }
 
-    //Saves the local config and sends a new packet to the server
-    //Returns a 'success' string for use in commands
-    /*public static string PlayerConfigsUpdated(IPlayer byplayer)
-    {
-        var configInfo = ConfigManager.ConfigInfo[0];
-        ConfigHelper.WriteConfig<ClientConfig>(_capi, (ClientConfig)ConfigManager.ConfigsByName.FirstOrDefault); //updates the config file client-side
-        ConfigManager.SendClientConfig(byplayer); //updates it server-side via packet
-        return $"Config settings for {byplayer.PlayerName} successfully updated.";
-    }*/
-
     //Handles registration of all server-side events and message handlers
     public override void StartServerSide(ICoreServerAPI sapi) 
     {
@@ -91,9 +81,9 @@ public class ModMain : ModSystem
         _sapi.Event.PlayerDisconnect += EventOnPlayerDisconnect;
         ServerChannel = _sapi.Network
             .RegisterChannel(NETWORK_CHANNEL_MAIN)
-            .RegisterMessageType<RequestToolsInfo>()
+            .RegisterMessageType<ClientConfigUpdated>()
             .RegisterMessageType<UpdatePlayerTools>()
-            .SetMessageHandler<RequestToolsInfo>(HandleClientDataRequest);
+            .SetMessageHandler<ClientConfigUpdated>(HandleClientDataRequest);
     }
 
     //Creates a new PlayerToolWatcher object for each player upon joining a server.
@@ -113,14 +103,13 @@ public class ModMain : ModSystem
     }
 
     //Handles network messages sent to the server from the client
-    private void HandleClientDataRequest(IServerPlayer fromplayer, RequestToolsInfo packet)
+    private void HandleClientDataRequest(IServerPlayer fromplayer, ClientConfigUpdated packet)
     {
-        if (!_watcherByPlayer.TryGetValue(packet.PlayerUid, out var watcher)) return; //if the player does not have a watcher, skip
+        if (!_watcherByPlayer.TryGetValue(fromplayer.PlayerUID, out var watcher)) return; //if the player does not have a watcher, skip
 
         ConfigManager.ClientConfig = JsonConvert.DeserializeObject<ClientConfig>(packet.ConfigData);
         watcher.ClientConfig = ConfigManager.ClientConfig;
         watcher.UpdateInventories(0);
-        _sapi.Log("Client config updates registered, passing them on to server...");
 
         var msg = watcher.GenerateUpdateMessage(); //generates a new message containing all of the player's updated tool rendering data
         ServerChannel.SendPacket(msg, fromplayer); //and sends it back to the client

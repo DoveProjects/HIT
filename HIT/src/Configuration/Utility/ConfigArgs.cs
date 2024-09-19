@@ -32,7 +32,6 @@ namespace Elephant.Configuration
             JsonPath = Name == MOD_NAME ?
                 $"{Name}.json" :
                 $"{Folder}/{Name}.json";
-            api.Log($"Initialized Config Data: {Side}, {Name}, {Folder}, {JsonPath}");
         }
         public ConfigArgs() { }
 
