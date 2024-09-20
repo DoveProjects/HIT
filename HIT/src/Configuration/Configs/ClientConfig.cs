@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Elephant.Configuration;
 using ProtoBuf;
+using System.Collections.Generic;
 
 
 namespace Elephant.HIT
@@ -16,7 +17,7 @@ namespace Elephant.HIT
         public bool Shields_Enabled { get; set; } //Bool to enable/disable all shield rendering
 
         public bool Favorited_Slots_Enabled { get; set; } //Bool to enable/disable the favorited slots feature
-        public int[] Favorited_Slots; //Int array to determine favorited hotbar slots. Defaults to slots 1-5
+        public List<int> Favorited_Slots; //Int list to determine favorited hotbar slots. Defaults to slots 1-5
 
 
         public ClientConfig() { }
@@ -28,7 +29,7 @@ namespace Elephant.HIT
             Tools_On_Back_Enabled = true;
             Shields_Enabled = true;
             Favorited_Slots_Enabled = false;
-            Favorited_Slots = new int[5] { 0, 1, 2, 3, 4 };
+            Favorited_Slots = new List<int> { 0, 1, 2, 3, 4 };
         }
         public ClientConfig(ConfigArgs args, ClientConfig previousConfig = null) : this(args)
         {

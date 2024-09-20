@@ -8,6 +8,7 @@ using Vintagestory.API.Common;
 using Elephant.Configuration;
 using ConfigLib;
 using ImGuiNET;
+using Vintagestory.API.Util;
 
 namespace Elephant.HIT;
 
@@ -105,6 +106,8 @@ public class ConfigLibCompat
 
                 ImGui.SeparatorText("Favorited Hotbar Slots");
                 config.Favorited_Slots_Enabled = OnCheckBox(id, config.Favorited_Slots_Enabled, nameof(config.Favorited_Slots_Enabled));
+                var favSlots = OnInputList(id, config.Favorited_Slots.Select(s => s.ToString()).ToList(), nameof(config.Favorited_Slots));
+                config.Favorited_Slots = favSlots.ToList().ConvertAll<int>(obj => (obj.ToInt()));
             }
         }
     }
@@ -196,13 +199,39 @@ public class ConfigLibCompat
         for (int i = 0; i < newValues.Count; i++)
         {
             string newValue = newValues[i];
-            ImGui.InputText($"{name}[{i}]##{name}-{id}-{i}", ref newValue, 64);
+            ImGui.InputText(Lang.Get(settingPrefix + name) + $" {i+1}##{name}-{id}-{i}", ref newValue, 64);
             newValues[i] = newValue;
         }
 
         if (ImGui.Button($"Add##{name}-{id}"))
         {
-            newValues.Add("");
+            if(newValues.Count <= 9) newValues.Add(newValues.Count.ToString());
+        }
+        ImGui.SameLine();
+        if (ImGui.Button($"Remove##{name}-{id}"))
+        {
+            if (newValues.Count > 0) newValues.RemoveAt(newValues.Count - 1);
+        }
+
+        return newValues;
+    }
+
+    private List<T> OnInputList<T>(string id, List<T> values, string name) where T : struct, Enum
+    {
+        List<T> newValues = new List<T>(values);
+        for (int i = 0; i < newValues.Count; i++)
+        {
+            string newValue = newValues[i].ToString();
+            ImGui.InputText($"{name}[{i}]##{name}-{id}-{i}", ref newValue, 64);
+            if (Enum.TryParse(newValue, out T parsedValue))
+            {
+                newValues[i] = parsedValue;
+            }
+        }
+
+        if (ImGui.Button($"Add##{name}-{id}"))
+        {
+            newValues.Add(default);
         }
 
         return newValues;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Vintagestory.API.Common;
 
@@ -36,5 +37,18 @@ namespace Elephant.HIT
             internal static string Admin_Send_Config = $"{MOD_ID}:adminsendconfig";
             internal static string Client_Send_Config = $"{MOD_ID}:clientsendconfig";
         }
+
+        internal static Dictionary<int, int> HotbarMap = new Dictionary<int, int>(){
+            {1, 0},
+            {2, 1},
+            {3, 2},
+            {4, 3},
+            {5, 4},
+            {6, 5},
+            {7, 6},
+            {8, 7},
+            {9, 8},
+            {0, 9}
+        };
     }
 }

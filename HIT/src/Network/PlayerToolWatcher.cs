@@ -111,7 +111,7 @@ public class PlayerToolWatcher
             if (itemSlot.Itemstack == null) continue; //if blank slot, skip
             if (ClientConfig.Favorited_Slots_Enabled) //check for favorited slots option in the config
             {
-                if (Array.IndexOf(ClientConfig.Favorited_Slots, inventory.GetSlotId(itemSlot)) == -1) continue; //skip if the hotbar slot doesn't match anything in the config's Favorited_Slots int array
+                if (ClientConfig.Favorited_Slots.IndexOf(inventory.GetSlotId(itemSlot)) == -1) continue; //skip if the hotbar slot doesn't match anything in the config's Favorited_Slots int array
             }
 
             if (itemSlot.Itemstack.Collectible is ItemShield) 
