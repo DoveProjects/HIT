@@ -114,7 +114,7 @@ public class PlayerToolWatcher
                 continue;
             }
 
-            if (itemSlot.Itemstack.Collectible.Tool != null) //if its a tool
+            if (itemSlot.Itemstack.Collectible.Tool != null)
             {
                 switch (itemSlot.Itemstack.Collectible.Tool) //switch case to determine "size", whether it can fit on arms (0/1) or back (2,3)
                 {
@@ -129,6 +129,15 @@ public class PlayerToolWatcher
                         break;
                 }
             }
+            else if (itemSlot.Itemstack.Collectible.Code.ShortDomain() == "spearexpantion")
+            {
+                if (ClientConfig.Tools_On_Back_Enabled)
+                {
+                    TryOccupySlot(itemSlot, new[] { 2, 3 }, _bodyArray);
+                }
+            }
+            Console.WriteLine("test1");
+            Console.WriteLine(itemSlot.Itemstack.ToString());
         }
     }
 

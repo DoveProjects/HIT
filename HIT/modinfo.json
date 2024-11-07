@@ -7,7 +7,7 @@
         "Dov3, Rhoun, Aera"
     ],
     "description": "H.I.T. Renders tools / shields / weapons on your player, now with advanced shields and MULTIPLAYER!!!",
-    "version": "2.1.2",
+    "version": "2.3",
     "dependencies": {
         "game": ""
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -20,7 +21,11 @@ enum CustomTransform
     GunLeft,
     GunRight,
     XbowLeft,
-    XbowRight
+    XbowRight,
+    KHLeft,
+    KHRight,
+    KHRotateLeft,
+    KHRotateRight
 }
 
 public class ToolRenderer : IRenderer
@@ -129,6 +134,30 @@ public class ToolRenderer : IRenderer
             Translation = new Vec3f(0f, -0.3f, -0.3f), //the one at 2 o clock previously -0.5
             Rotation = new Vec3f(45, 180, 90),
             Scale = 0.75f
+        },
+        [CustomTransform.KHLeft] = new() //Kanahaku on back, diagonal from left to right
+        {
+            Translation = new Vec3f(0.04f, -0.99f, -0.2f), //the one at 10 o clock
+            Rotation = new Vec3f(-45, 0, -90),
+            Scale = 0.55f
+        },
+        [CustomTransform.KHRight] = new() //Kanahaku on back, diagonal from right to left
+        {
+            Translation = new Vec3f(0f, -0.3f, -0.3f), //the one at 2 o clock previously -0.5
+            Rotation = new Vec3f(45, 180, 90),
+            Scale = 0.55f
+        },
+        [CustomTransform.KHRotateLeft] = new() //Kanahaku on back, diagonal from left to right
+        {
+            Translation = new Vec3f(0.04f, -0.99f, -0.2f), //the one at 10 o clock
+            Rotation = new Vec3f(-45, 90, 0),
+            Scale = 0.55f
+        },
+        [CustomTransform.KHRotateRight] = new() //Kanahaku on back, diagonal from right to left
+        {
+            Translation = new Vec3f(0f, -0.3f, -0.3f), //the one at 2 o clock previously -0.5
+            Rotation = new Vec3f(45, 90, 90),
+            Scale = 0.55f
         }
     };
 
@@ -177,6 +206,27 @@ public class ToolRenderer : IRenderer
                 transform = CustomTransforms[_shieldTransform];
                 return true;
             }
+            if (code.Contains("tonwexp") && (
+                code.Contains("gladius") ||
+                code.Contains("saber") ||
+                code.Contains("katana") ||
+                code.Contains("spear")  ||
+                code.Contains("flamberge") ||
+                code.Contains("katzbalger"))
+                )
+            {
+                transform = slotId == 2
+                    ? CustomTransforms[CustomTransform.KHRotateLeft]
+                    : CustomTransforms[CustomTransform.KHRotateRight];
+                return true;
+            }
+            if (code.Contains("tonwexp"))
+            {
+                transform = slotId == 2
+                    ? CustomTransforms[CustomTransform.KHLeft]
+                    : CustomTransforms[CustomTransform.KHRight];
+                return true;
+            }
         }
 
         transform = null;
@@ -198,7 +248,6 @@ public class ToolRenderer : IRenderer
 
             _slotCodes[i] = slotData.Code;
             var stack = new ItemStack(slotData.StackData);
-
             LoadToolMultiMesh(stack, item, i);
         }
         _backToolsOffset = 0;
@@ -292,7 +341,6 @@ public class ToolRenderer : IRenderer
         if (_player == _api.World.Player && _api.World.Player.CameraMode == EnumCameraMode.FirstPerson) return; //if it's in first person mode skip the rendering as a whole
         if (_player.Entity.Properties.Client.Renderer is not EntityShapeRenderer rend) return; //checking for modded
         if (_player.Entity.AnimManager.Animator is not ClientAnimator animator) return; //checking for modded
-
         //setting up the renderer
         bool isShadowPass = stage != EnumRenderStage.Opaque;
         var skippedLeft = false;
@@ -326,7 +374,6 @@ public class ToolRenderer : IRenderer
     private void RenderTool(int slotId, IStandardShaderProgram prog, EntityShapeRenderer rend, ClientAnimator animator)
     {
         if (_playerTools[slotId] == null) return; //if the mesh has no reference set skip
-
         var toolTextureId = _textures[slotId]; //set the texture
         if (!TryGetCustomTransform(slotId, out var toolTransform) && slotId < ToolTransforms.Length) //if it needs a custom transform
         {
