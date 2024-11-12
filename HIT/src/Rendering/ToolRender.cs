@@ -138,25 +138,25 @@ public class ToolRenderer : IRenderer
         [CustomTransform.KHLeft] = new() //Kanahaku on back, diagonal from left to right
         {
             Translation = new Vec3f(0.04f, -0.99f, -0.2f), //the one at 10 o clock
-            Rotation = new Vec3f(-45, 0, -90),
+            Rotation = new Vec3f(-45, 0, 0),
             Scale = 0.55f
         },
         [CustomTransform.KHRight] = new() //Kanahaku on back, diagonal from right to left
         {
             Translation = new Vec3f(0f, -0.3f, -0.3f), //the one at 2 o clock previously -0.5
-            Rotation = new Vec3f(45, 180, 90),
+            Rotation = new Vec3f(45, 180, 0),
             Scale = 0.55f
         },
         [CustomTransform.KHRotateLeft] = new() //Kanahaku on back, diagonal from left to right
         {
-            Translation = new Vec3f(0.04f, -0.99f, -0.2f), //the one at 10 o clock
+            Translation = new Vec3f(-0.57f, -0.59f, -1f), //the one at 10 o clock
             Rotation = new Vec3f(-45, 90, 0),
             Scale = 0.55f
         },
         [CustomTransform.KHRotateRight] = new() //Kanahaku on back, diagonal from right to left
         {
-            Translation = new Vec3f(0f, -0.3f, -0.3f), //the one at 2 o clock previously -0.5
-            Rotation = new Vec3f(45, 90, 90),
+            Translation = new Vec3f(-0.53f, -1.3f, -1.1f), //the one at 2 o clock previously -0.5
+            Rotation = new Vec3f(45, 90, 180),
             Scale = 0.55f
         }
     };
@@ -201,7 +201,7 @@ public class ToolRenderer : IRenderer
                     : CustomTransforms[CustomTransform.XbowRight];
                 return true;
             }
-            if (code.Contains("shield") && slotId == ModMain.ShieldSlotId)
+            if ((code.Contains("shield") || code.Contains("scutus")) && slotId == ModMain.ShieldSlotId)
             {
                 transform = CustomTransforms[_shieldTransform];
                 return true;
@@ -212,6 +212,8 @@ public class ToolRenderer : IRenderer
                 code.Contains("katana") ||
                 code.Contains("spear")  ||
                 code.Contains("flamberge") ||
+                code.Contains("gross") ||
+                code.Contains("pilum") ||
                 code.Contains("katzbalger"))
                 )
             {
